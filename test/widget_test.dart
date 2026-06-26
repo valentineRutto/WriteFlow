@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:writeflow/main.dart';
@@ -19,10 +20,13 @@ void main() {
 
     expect(find.text('Diary entry - 1 page'), findsOneWidget);
     expect(find.textContaining('The morning light'), findsOneWidget);
-    await tester.ensureVisible(find.text('Export PDF'));
-    expect(find.text('Export PDF'), findsOneWidget);
+    expect(find.textContaining('Demo fallback scanner'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('EPUB'));
+    await tester.scrollUntilVisible(
+      find.text('Export as'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('EPUB'));
     await tester.pump();
 
