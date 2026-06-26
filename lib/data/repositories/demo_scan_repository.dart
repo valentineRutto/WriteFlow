@@ -27,6 +27,10 @@ class DemoScanRepository implements ScanRepository {
       ),
     );
 
-    return ScannedDocument(title: 'Diary entry', pages: pages);
+    return ScannedDocument(
+      title: 'Diary entry',
+      pages: pages,
+      engine: 'Demo fallback scanner',
+    );
   }
 }
