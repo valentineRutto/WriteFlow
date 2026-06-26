@@ -54,7 +54,9 @@ class _InkscribeShellState extends State<InkscribeShell> {
     _scanViewModel = ScanViewModel(
       repository: widget.dependencies.scanRepository,
     );
-    _previewViewModel = PreviewViewModel();
+    _previewViewModel = PreviewViewModel(
+      textEditingRepository: widget.dependencies.textEditingRepository,
+    );
     _libraryViewModel = LibraryViewModel(
       repository: widget.dependencies.libraryRepository,
     );
@@ -142,6 +144,7 @@ class _InkscribeShellState extends State<InkscribeShell> {
                                     _navigationViewModel.show(AppScreen.home),
                                 onAddPage: () =>
                                     _navigationViewModel.show(AppScreen.home),
+                                onEditPage: _editCurrentPage,
                                 onHome: () =>
                                     _navigationViewModel.show(AppScreen.home),
                                 onLibrary: () => _navigationViewModel.show(
@@ -167,6 +170,48 @@ class _InkscribeShellState extends State<InkscribeShell> {
       },
     );
   }
+
+  Future<void> _editCurrentPage() async {
+    final page = _previewViewModel.currentPage;
+    if (page == null) {
+      return;
+    }
+
+    final controller = TextEditingController(text: page.text);
+    final updatedText = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit recognised text'),
+        content: TextField(
+          controller: controller,
+          minLines: 6,
+          maxLines: 10,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Correct the handwriting OCR here...',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+
+    if (updatedText == null) {
+      return;
+    }
+
+    _previewViewModel.updateCurrentPageText(updatedText);
+  }
 }
 
 class HomeScreen extends StatelessWidget {
@@ -191,6 +236,7 @@ class HomeScreen extends StatelessWidget {
         onLibrary: onLibrary,
       ),
       child: ListView(
+        cacheExtent: 4000,
         padding: EdgeInsets.zero,
         children: [
           const AppTopBar(
@@ -276,6 +322,7 @@ class PreviewScreen extends StatelessWidget {
     required this.viewModel,
     required this.onBack,
     required this.onAddPage,
+    required this.onEditPage,
     required this.onHome,
     required this.onLibrary,
   });
@@ -283,6 +330,7 @@ class PreviewScreen extends StatelessWidget {
   final PreviewViewModel viewModel;
   final VoidCallback onBack;
   final VoidCallback onAddPage;
+  final VoidCallback onEditPage;
   final VoidCallback onHome;
   final VoidCallback onLibrary;
 
@@ -300,6 +348,7 @@ class PreviewScreen extends StatelessWidget {
         onLibrary: onLibrary,
       ),
       child: ListView(
+        cacheExtent: 4000,
         padding: EdgeInsets.zero,
         children: [
           PreviewTopBar(document: document, onBack: onBack),
@@ -329,6 +378,10 @@ class PreviewScreen extends StatelessWidget {
             ),
           ),
           OcrPreviewCard(page: viewModel.currentPage),
+          AiPipelineBadge(
+            engine: document?.engine,
+            aiEngine: viewModel.currentPage?.aiEngine,
+          ),
           AccuracyMeter(confidence: document?.overallConfidence ?? 0),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
@@ -362,7 +415,7 @@ class PreviewScreen extends StatelessWidget {
             child: Row(
               children: [
                 OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: onEditPage,
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Edit text'),
                   style: OutlinedButton.styleFrom(
@@ -370,6 +423,30 @@ class PreviewScreen extends StatelessWidget {
                     side: const BorderSide(color: AppColors.border),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: viewModel.isImprovingText
+                      ? null
+                      : viewModel.improveCurrentPage,
+                  icon: viewModel.isImprovingText
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_fix_high_rounded, size: 18),
+                  label: const Text('Clean'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
                       vertical: 14,
                     ),
                     shape: RoundedRectangleBorder(
@@ -1047,6 +1124,50 @@ class OcrPreviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(page?.text ?? 'No recognized text yet.', style: textStyle),
+        ],
+      ),
+    );
+  }
+}
+
+class AiPipelineBadge extends StatelessWidget {
+  const AiPipelineBadge({super.key, this.engine, this.aiEngine});
+
+  final String? engine;
+  final String? aiEngine;
+
+  @override
+  Widget build(BuildContext context) {
+    final scanEngine = engine ?? 'Scanner ready';
+    final textEngine = aiEngine ?? 'Text cleanup ready';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.mint,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.memory_rounded,
+            color: AppColors.deepGreen,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '$scanEngine\n$textEngine',
+              style: const TextStyle(
+                color: AppColors.darkMintText,
+                fontSize: 10,
+                height: 1.35,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ],
       ),
     );

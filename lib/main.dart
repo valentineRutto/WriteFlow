@@ -6,5 +6,5 @@ import 'presentation/writeflow_app.dart';
 export 'presentation/writeflow_app.dart' show WriteFlowApp;
 
 void main() {
-  runApp(WriteFlowApp(dependencies: AppDependencies.demo()));
+  runApp(WriteFlowApp(dependencies: AppDependencies.production()));
 }
