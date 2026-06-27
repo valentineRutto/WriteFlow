@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -37,5 +35,30 @@ void main() {
 
     expect(find.text('Diary - March 1987'), findsOneWidget);
     expect(find.text("Grandma's recipe book"), findsOneWidget);
+  });
+
+  testWidgets('edits recognised text from the preview header', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(430, 920));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const WriteFlowApp());
+
+    await tester.tap(find.text('Tap to scan'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Edit text').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit recognised text'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).last,
+      'Corrected handwritten note',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Corrected handwritten note'), findsOneWidget);
+    expect(find.textContaining('The morning light'), findsNothing);
   });
 }

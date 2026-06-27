@@ -177,40 +177,68 @@ class _InkscribeShellState extends State<InkscribeShell> {
       return;
     }
 
-    final controller = TextEditingController(text: page.text);
     final updatedText = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit recognised text'),
-        content: TextField(
-          controller: controller,
-          minLines: 6,
-          maxLines: 10,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Correct the handwriting OCR here...',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      builder: (context) => EditRecognisedTextDialog(initialText: page.text),
     );
-
-    controller.dispose();
 
     if (updatedText == null) {
       return;
     }
 
     _previewViewModel.updateCurrentPageText(updatedText);
+  }
+}
+
+class EditRecognisedTextDialog extends StatefulWidget {
+  const EditRecognisedTextDialog({super.key, required this.initialText});
+
+  final String initialText;
+
+  @override
+  State<EditRecognisedTextDialog> createState() =>
+      _EditRecognisedTextDialogState();
+}
+
+class _EditRecognisedTextDialogState extends State<EditRecognisedTextDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit recognised text'),
+      content: TextField(
+        controller: _controller,
+        minLines: 6,
+        maxLines: 10,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          hintText: 'Correct the handwriting OCR here...',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }
 
@@ -351,7 +379,11 @@ class PreviewScreen extends StatelessWidget {
         cacheExtent: 4000,
         padding: EdgeInsets.zero,
         children: [
-          PreviewTopBar(document: document, onBack: onBack),
+          PreviewTopBar(
+            document: document,
+            onBack: onBack,
+            onEditPage: onEditPage,
+          ),
           SizedBox(
             height: 108,
             child: ListView.separated(
@@ -966,10 +998,12 @@ class PreviewTopBar extends StatelessWidget {
     super.key,
     required this.document,
     required this.onBack,
+    required this.onEditPage,
   });
 
   final ScannedDocument? document;
   final VoidCallback onBack;
+  final VoidCallback onEditPage;
 
   @override
   Widget build(BuildContext context) {
@@ -1007,7 +1041,12 @@ class PreviewTopBar extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.more_horiz_rounded, color: AppColors.textMuted),
+          IconButton(
+            onPressed: document == null ? null : onEditPage,
+            icon: const Icon(Icons.edit_outlined),
+            color: AppColors.textMuted,
+            tooltip: 'Edit text',
+          ),
         ],
       ),
     );
