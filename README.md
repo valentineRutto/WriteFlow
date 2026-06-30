@@ -25,7 +25,6 @@ the production model package/download flow is added.
 - Android
 - iOS
 
-Web and desktop targets are intentionally not included.
 
 ## Development
 
