@@ -61,4 +61,40 @@ void main() {
     expect(find.textContaining('Corrected handwritten note'), findsOneWidget);
     expect(find.textContaining('The morning light'), findsNothing);
   });
+
+  testWidgets('adds and edits document types from the home screen', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(430, 920));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const WriteFlowApp());
+
+    await tester.tap(find.byTooltip('Add document type'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Add document type'), findsOneWidget);
+
+    await tester.enterText(find.byType(EditableText).at(0), 'Letters');
+    await tester.enterText(find.byType(EditableText).at(1), 'Mail & drafts');
+    await tester.tap(find.text('Save'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Letters'), findsOneWidget);
+    expect(find.text('Mail & drafts'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Edit document type'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Edit document type'), findsOneWidget);
+
+    await tester.enterText(find.byType(EditableText).at(0), 'Client letters');
+    await tester.enterText(find.byType(EditableText).at(1), 'Signed drafts');
+    await tester.tap(find.text('Save'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Client letters'), findsOneWidget);
+    expect(find.text('Signed drafts'), findsOneWidget);
+    expect(find.text('Letters'), findsNothing);
+  });
 }

@@ -46,6 +46,7 @@ class _InkscribeShellState extends State<InkscribeShell> {
   late final PreviewViewModel _previewViewModel;
   late final LibraryViewModel _libraryViewModel;
   late final Listenable _viewModels;
+  final List<DocType> _documentTypes = List.of(defaultDocTypes);
 
   @override
   void initState() {
@@ -133,6 +134,9 @@ class _InkscribeShellState extends State<InkscribeShell> {
                             child: switch (screen) {
                               AppScreen.home => HomeScreen(
                                 viewModel: _scanViewModel,
+                                documentTypes: _documentTypes,
+                                onAddDocumentType: _addDocumentType,
+                                onEditDocumentType: _editSelectedDocumentType,
                                 onScan: _scan,
                                 onLibrary: () => _navigationViewModel.show(
                                   AppScreen.library,
@@ -187,6 +191,241 @@ class _InkscribeShellState extends State<InkscribeShell> {
     }
 
     _previewViewModel.updateCurrentPageText(updatedText);
+  }
+
+  Future<void> _addDocumentType() async {
+    final documentType = await showDialog<DocType>(
+      context: context,
+      builder: (context) => const DocumentTypeDialog(),
+    );
+
+    if (documentType == null) {
+      return;
+    }
+
+    setState(() {
+      _documentTypes.add(documentType);
+      _scanViewModel.selectDocumentType(_documentTypes.length - 1);
+    });
+  }
+
+  Future<void> _editSelectedDocumentType() async {
+    final selectedIndex = _scanViewModel.selectedDocumentType;
+    if (selectedIndex < 0 || selectedIndex >= _documentTypes.length) {
+      return;
+    }
+
+    final documentType = await showDialog<DocType>(
+      context: context,
+      builder: (context) => DocumentTypeDialog(
+        initialDocumentType: _documentTypes[selectedIndex],
+      ),
+    );
+
+    if (documentType == null) {
+      return;
+    }
+
+    setState(() {
+      _documentTypes[selectedIndex] = documentType;
+    });
+  }
+}
+
+class DocumentTypeDialog extends StatefulWidget {
+  const DocumentTypeDialog({super.key, this.initialDocumentType});
+
+  final DocType? initialDocumentType;
+
+  @override
+  State<DocumentTypeDialog> createState() => _DocumentTypeDialogState();
+}
+
+class _DocumentTypeDialogState extends State<DocumentTypeDialog> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _subtitleController;
+  late IconData _icon;
+  late Color _color;
+
+  bool get _isEditing => widget.initialDocumentType != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialDocumentType;
+    _titleController = TextEditingController(text: initial?.title ?? '');
+    _subtitleController = TextEditingController(text: initial?.subtitle ?? '');
+    _icon = initial?.icon ?? _documentTypeIconOptions.first;
+    _color = initial?.color ?? _documentTypeColorOptions.first;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _subtitleController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final title = _titleController.text.trim();
+    final subtitle = _subtitleController.text.trim();
+    if (title.isEmpty || subtitle.isEmpty) {
+      return;
+    }
+
+    Navigator.of(context).pop(DocType(title, subtitle, _icon, _color));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_isEditing ? 'Edit document type' : 'Add document type'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _titleController,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Name',
+              ),
+              onSubmitted: (_) => _save(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _subtitleController,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Subtitle',
+              ),
+              onSubmitted: (_) => _save(),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Icon',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final icon in _documentTypeIconOptions)
+                  _OptionIconButton(
+                    icon: icon,
+                    selected: icon == _icon,
+                    color: _color,
+                    onTap: () => setState(() => _icon = icon),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Color',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final color in _documentTypeColorOptions)
+                  _ColorSwatchButton(
+                    color: color,
+                    selected: color == _color,
+                    onTap: () => setState(() => _color = color),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
+      ],
+    );
+  }
+}
+
+class _OptionIconButton extends StatelessWidget {
+  const _OptionIconButton({
+    required this.icon,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton.filledTonal(
+      onPressed: onTap,
+      icon: Icon(icon),
+      color: selected ? Colors.white : color,
+      style: IconButton.styleFrom(
+        backgroundColor: selected ? color : AppColors.surface,
+        side: BorderSide(
+          color: selected ? color : AppColors.borderLight,
+          width: selected ? 2 : 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorSwatchButton extends StatelessWidget {
+  const _ColorSwatchButton({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Select color',
+      child: InkResponse(
+        onTap: onTap,
+        radius: 22,
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? AppColors.textPrimary : AppColors.borderLight,
+              width: selected ? 3 : 1,
+            ),
+          ),
+          child: selected
+              ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+              : null,
+        ),
+      ),
+    );
   }
 }
 
@@ -246,11 +485,17 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     required this.viewModel,
+    required this.documentTypes,
+    required this.onAddDocumentType,
+    required this.onEditDocumentType,
     required this.onScan,
     required this.onLibrary,
   });
 
   final ScanViewModel viewModel;
+  final List<DocType> documentTypes;
+  final VoidCallback onAddDocumentType;
+  final VoidCallback onEditDocumentType;
   final Future<void> Function() onScan;
   final VoidCallback onLibrary;
 
@@ -276,11 +521,28 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: ScanHero(onTap: onScan),
           ),
-          const _SectionLabel('Document type'),
+          _SectionHeader(
+            label: 'Document type',
+            actions: [
+              IconButton(
+                onPressed: onEditDocumentType,
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Edit document type',
+                color: AppColors.textMuted,
+              ),
+              IconButton.filledTonal(
+                onPressed: onAddDocumentType,
+                icon: const Icon(Icons.add_rounded),
+                tooltip: 'Add document type',
+                color: AppColors.deepGreen,
+                style: IconButton.styleFrom(backgroundColor: AppColors.mint),
+              ),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: GridView.builder(
-              itemCount: docTypes.length,
+              itemCount: documentTypes.length,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -290,7 +552,7 @@ class HomeScreen extends StatelessWidget {
                 childAspectRatio: 1.7,
               ),
               itemBuilder: (context, index) {
-                final doc = docTypes[index];
+                final doc = documentTypes[index];
                 return SelectableCard(
                   selected: viewModel.selectedDocumentType == index,
                   icon: doc.icon,
@@ -1542,23 +1804,31 @@ class _TabPill extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.label);
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label, required this.actions});
 
   final String label;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
-        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          for (final action in actions) action,
+        ],
       ),
     );
   }
@@ -1636,7 +1906,7 @@ LibraryItemStyle libraryItemStyle(String category) {
   };
 }
 
-const docTypes = [
+const defaultDocTypes = [
   DocType(
     'Diary / journal',
     'Personal entries',
@@ -1668,6 +1938,28 @@ const docTypes = [
     Icons.church_outlined,
     Color(0xFF534AB7),
   ),
+];
+
+const _documentTypeIconOptions = [
+  Icons.menu_book_outlined,
+  Icons.draw_outlined,
+  Icons.notes_rounded,
+  Icons.school_outlined,
+  Icons.restaurant_menu_rounded,
+  Icons.church_outlined,
+  Icons.business_center_outlined,
+  Icons.description_outlined,
+];
+
+const _documentTypeColorOptions = [
+  AppColors.deepGreen,
+  Color(0xFF185FA5),
+  AppColors.brownText,
+  Color(0xFF3B6D11),
+  Color(0xFF993C1D),
+  Color(0xFF534AB7),
+  Color(0xFFA32D2D),
+  Color(0xFF444441),
 ];
 
 const exportTypes = [
