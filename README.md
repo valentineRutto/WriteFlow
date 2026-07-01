@@ -1,43 +1,45 @@
 # WriteFlow
 
-WriteFlow is an Android and iOS Flutter application for converting scanned
-handwritten documents into editable digital text.
+WriteFlow is a native Android app for turning handwritten document scans into
+editable digital text. The app is implemented with Kotlin, Jetpack Compose,
+MVVM, and Koin.
 
-## On-device scanning and AI pipeline
+## Architecture
 
-WriteFlow keeps scanning and text processing on the device:
+- `MainActivity` hosts the Compose UI.
+- `WriteFlowApplication` starts Koin.
+- `di/` wires repositories and view models.
+- `domain/` contains app models and repository contracts.
+- `data/` contains demo repository implementations.
+- `presentation/viewmodel/` owns screen state and user actions.
+- `presentation/` contains the Compose screens and reusable UI.
 
-- Android uses ML Kit Document Scanner for capture and ML Kit Text Recognition
-  v2 for OCR.
-- iOS uses VisionKit Document Camera for capture and Apple Vision text
-  recognition for OCR.
-- Flutter talks to the native scanner through `writeflow/on_device_ai`.
-- Text cleanup is behind a `TextEditingRepository`, so Gemma through
-  LiteRT-LM on Android or Apple Foundation Models on iOS can be added without
-  changing the UI or MVVM flow.
+## Current Features
 
-Current text cleanup uses a local deterministic fallback when a native LLM is
-not available. This keeps the app runnable on emulators and simulators while
-the production model package/download flow is added.
-
-## Supported platforms
-
-- Android
-- iOS
-
+- Select, add, and edit document types.
+- Simulated scan flow with batch mode.
+- Preview recognized text and edit it.
+- Run deterministic text cleanup.
+- Browse and search a demo document library.
 
 ## Development
 
+From the Android project directory:
+
 ```bash
-flutter pub get
-flutter analyze
-flutter test
-flutter run
+cd android
+./gradlew assembleDebug
 ```
 
-Android and iOS builds:
+If Gradle cannot write to the default user cache on this machine, use:
 
 ```bash
-flutter build apk --debug
-flutter build ios --simulator
+cd android
+GRADLE_USER_HOME=/private/tmp/writeflow-gradle ./gradlew assembleDebug
+```
+
+Install the debug APK:
+
+```bash
+adb install -r ../build/app/outputs/apk/debug/app-debug.apk
 ```
