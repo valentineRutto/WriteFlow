@@ -3,6 +3,8 @@
 WriteFlow is an Android and iOS Flutter application for converting scanned
 handwritten documents into editable digital text.
 
+WriteFlow turns messy handwritten knowledge into clean, searchable, shareable documents privately on your phone.
+
 ## On-device scanning and AI pipeline
 
 WriteFlow keeps scanning and text processing on the device:
