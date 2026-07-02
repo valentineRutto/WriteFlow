@@ -22,24 +22,48 @@ Current text cleanup uses a local deterministic fallback when a native LLM is
 not available. This keeps the app runnable on emulators and simulators while
 the production model package/download flow is added.
 
+## Features
+
+“Exam season pack” for students.
+“Sermon archive pack” for pastors.
+“Business ledger pack” for small shops.
+
+- AI Study Mode
+Turn scanned class notes into summaries.
+Generate flashcards.
+Generate quiz questions.
+Extract key definitions and formulas.
+This gives students a reason to use it weekly, not once.
+
+- Smart Document Templates
+Meeting notes → action items.
+Sermon notes → sermon outline + shareable devotional.
+Recipes → ingredients + steps.
+Business ledger → structured table.
+Class notes → study guide.
+Your existing document type system is a perfect foundation for this.
+
+- Searchable Private Library
+Real saved documents, not demo data.
+Tags, folders, favorites.
+Search inside recognized text.
+“Ask my notes” local AI search later.
+
+- Export That Actually Saves Time
+PDF, Markdown, DOCX, TXT.
+CSV for business/ledger notes.
+Direct export to Google Drive, Notion, WhatsApp, email.
+The current export button is visible but not wired, so this is a key product gap.
+
+- Before/After Confidence Editing
+Highlight low-confidence phrases.
+Let users tap only uncertain words.
+Show original handwriting image beside recognized text.
+This improves trust, which is critical for OCR products.
+
 ## Supported platforms
 
 - Android
 - iOS
 
 
-## Development
-
-```bash
-flutter pub get
-flutter analyze
-flutter test
-flutter run
-```
-
-Android and iOS builds:
-
-```bash
-flutter build apk --debug
-flutter build ios --simulator
-```
