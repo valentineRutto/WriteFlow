@@ -89,6 +89,11 @@ class _InkscribeShellState extends State<InkscribeShell> {
     _navigationViewModel.show(AppScreen.preview);
   }
 
+  void _openLibraryDocument(LibraryDocument document) {
+    _previewViewModel.showDocument(_scannedDocumentFromLibraryItem(document));
+    _navigationViewModel.show(AppScreen.preview);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -159,6 +164,7 @@ class _InkscribeShellState extends State<InkscribeShell> {
                                 viewModel: _libraryViewModel,
                                 onHome: () =>
                                     _navigationViewModel.show(AppScreen.home),
+                                onOpenDocument: _openLibraryDocument,
                               ),
                             },
                           ),
@@ -230,6 +236,34 @@ class _InkscribeShellState extends State<InkscribeShell> {
       _documentTypes[selectedIndex] = documentType;
     });
   }
+}
+
+ScannedDocument _scannedDocumentFromLibraryItem(LibraryDocument document) {
+  final pageCount = _pageCountFromMeta(document.meta);
+  final pages = List.generate(
+    pageCount,
+    (index) => ScannedPage(
+      number: index + 1,
+      text:
+          '${document.title}\n'
+          '${document.category} document opened from your library.\n\n'
+          'This saved handwriting preview is ready to review, clean, edit, '
+          'and export from Inkscribe.',
+      confidence: 0.9,
+      aiEngine: 'Saved OCR text',
+    ),
+  );
+
+  return ScannedDocument(
+    title: document.title,
+    pages: pages,
+    engine: 'Inkscribe library',
+  );
+}
+
+int _pageCountFromMeta(String meta) {
+  final match = RegExp(r'^(\d+)\s+pages?').firstMatch(meta);
+  return int.tryParse(match?.group(1) ?? '') ?? 1;
 }
 
 class DocumentTypeDialog extends StatefulWidget {
@@ -778,10 +812,12 @@ class LibraryScreen extends StatelessWidget {
     super.key,
     required this.viewModel,
     required this.onHome,
+    required this.onOpenDocument,
   });
 
   final LibraryViewModel viewModel;
   final VoidCallback onHome;
+  final ValueChanged<LibraryDocument> onOpenDocument;
 
   @override
   Widget build(BuildContext context) {
@@ -834,6 +870,7 @@ class LibraryScreen extends StatelessWidget {
               LibraryItemTile(
                 item: item,
                 isLast: item == viewModel.documents.last,
+                onTap: () => onOpenDocument(item),
               ),
           const SizedBox(height: 16),
         ],
@@ -1568,17 +1605,23 @@ class ExportOptionCard extends StatelessWidget {
 }
 
 class LibraryItemTile extends StatelessWidget {
-  const LibraryItemTile({super.key, required this.item, required this.isLast});
+  const LibraryItemTile({
+    super.key,
+    required this.item,
+    required this.isLast,
+    required this.onTap,
+  });
 
   final LibraryDocument item;
   final bool isLast;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final style = libraryItemStyle(item.category);
 
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.symmetric(vertical: 12),

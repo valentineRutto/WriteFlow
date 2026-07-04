@@ -35,6 +35,13 @@ void main() {
 
     expect(find.text('Diary - March 1987'), findsOneWidget);
     expect(find.text("Grandma's recipe book"), findsOneWidget);
+
+    await tester.tap(find.text('Diary - March 1987'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Diary - March 1987 - 3 pages'), findsOneWidget);
+    expect(find.textContaining('opened from your library'), findsOneWidget);
+    expect(find.text('Export as'), findsOneWidget);
   });
 
   testWidgets('edits recognised text from the preview header', (tester) async {
