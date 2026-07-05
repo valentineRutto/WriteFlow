@@ -26,7 +26,7 @@ class PreviewScreen extends StatelessWidget {
 
     return Column(
       children: [
-        const StatusBar(time: '9:43'),
+        //const StatusBar(time: '9:43'),
         Expanded(
           child: ListView(
             cacheExtent: 4000,

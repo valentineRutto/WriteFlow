@@ -22,17 +22,17 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const StatusBar(time: '9:41'),
+        //const StatusBar(time: '9:41'),
         Expanded(
           child: ListView(
             cacheExtent: 4000,
             padding: EdgeInsets.zero,
             children: [
-              const AppTopBar(
-                title: 'Inkscribe',
-                subtitle: 'On-device AI - no internet needed',
-                trailing: Icons.notifications_none_rounded,
-              ),
+              // const AppTopBar(
+              //   title: 'Inkscribe',
+              //   subtitle: 'On-device AI - no internet needed',
+              //   trailing: Icons.notifications_none_rounded,
+              // ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                 child: ScanHero(onTap: onScan),

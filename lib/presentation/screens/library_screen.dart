@@ -16,16 +16,16 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const StatusBar(time: '9:45'),
+        //const StatusBar(time: '9:45'),
         Expanded(
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const AppTopBar(
-                title: 'My library',
-                subtitle: '12 documents - 47 pages',
-                trailing: Icons.tune_rounded,
-              ),
+              // const AppTopBar(
+              //   title: 'My library',
+              //   subtitle: '12 documents - 47 pages',
+              //   trailing: Icons.tune_rounded,
+              // ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                 child: TextField(
