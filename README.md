@@ -5,6 +5,8 @@ handwritten documents into editable digital text.
 
 WriteFlow turns messy handwritten knowledge into clean, searchable, shareable documents privately on your phone.
 
+InkToDoc AI converts handwritten notebooks, journals, and paper notes into editable digital documents using edge AI.
+
 ## On-device scanning and AI pipeline
 
 WriteFlow keeps scanning and text processing on the device:
