@@ -575,27 +575,17 @@ class HomeScreen extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: GridView.builder(
-              itemCount: documentTypes.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.7,
-              ),
-              itemBuilder: (context, index) {
-                final doc = documentTypes[index];
-                return SelectableCard(
-                  selected: viewModel.selectedDocumentType == index,
-                  icon: doc.icon,
-                  iconColor: doc.color,
-                  title: doc.title,
-                  subtitle: doc.subtitle,
-                  onTap: () => viewModel.selectDocumentType(index),
-                );
-              },
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var index = 0; index < documentTypes.length; index++)
+                  DocumentTypeFilterChip(
+                    documentType: documentTypes[index],
+                    selected: viewModel.selectedDocumentType == index,
+                    onTap: () => viewModel.selectDocumentType(index),
+                  ),
+              ],
             ),
           ),
           Padding(
@@ -1167,72 +1157,50 @@ class ScanCornerPainter extends CustomPainter {
   }
 }
 
-class SelectableCard extends StatelessWidget {
-  const SelectableCard({
+class DocumentTypeFilterChip extends StatelessWidget {
+  const DocumentTypeFilterChip({
     super.key,
+    required this.documentType,
     required this.selected,
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
+  final DocType documentType;
   final bool selected;
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.mint : AppColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? AppColors.accentGreen : AppColors.borderLight,
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: iconColor, size: 22),
-              const SizedBox(height: 6),
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return FilterChip(
+      selected: selected,
+      onSelected: (_) => onTap(),
+      avatar: Icon(
+        documentType.icon,
+        color: selected ? AppColors.deepGreen : documentType.color,
+        size: 18,
       ),
+      label: Text(
+        documentType.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      tooltip: documentType.subtitle,
+      showCheckmark: false,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      labelStyle: TextStyle(
+        color: selected ? AppColors.darkMintText : AppColors.textPrimary,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+      ),
+      backgroundColor: AppColors.surface,
+      selectedColor: AppColors.mint,
+      side: BorderSide(
+        color: selected ? AppColors.accentGreen : AppColors.borderLight,
+        width: selected ? 1.5 : 1,
+      ),
+      shape: const StadiumBorder(),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
     );
   }
 }

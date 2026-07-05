@@ -88,7 +88,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Letters'), findsOneWidget);
-    expect(find.text('Mail & drafts'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Edit document type'));
     await tester.pump(const Duration(milliseconds: 300));
@@ -101,7 +100,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Client letters'), findsOneWidget);
-    expect(find.text('Signed drafts'), findsOneWidget);
     expect(find.text('Letters'), findsNothing);
   });
 }
