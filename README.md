@@ -1,21 +1,21 @@
-# WriteFlow
+# InkDoc
 
-WriteFlow is an Android and iOS Flutter application for converting scanned
+InkDoc is an Android and iOS Flutter application for converting scanned
 handwritten documents into editable digital text.
 
-WriteFlow turns messy handwritten knowledge into clean, searchable, shareable documents privately on your phone.
+InkDoc turns messy handwritten knowledge into clean, searchable, shareable documents privately on your phone.
 
 InkToDoc AI converts handwritten notebooks, journals, and paper notes into editable digital documents using edge AI.
 
 ## On-device scanning and AI pipeline
 
-WriteFlow keeps scanning and text processing on the device:
+InkDoc keeps scanning and text processing on the device:
 
 - Android uses ML Kit Document Scanner for capture and ML Kit Text Recognition
   v2 for OCR.
 - iOS uses VisionKit Document Camera for capture and Apple Vision text
   recognition for OCR.
-- Flutter talks to the native scanner through `writeflow/on_device_ai`.
+- Flutter talks to the native scanner through `inkdoc/on_device_ai`.
 - Text cleanup is behind a `TextEditingRepository`, so Gemma through
   LiteRT-LM on Android or Apple Foundation Models on iOS can be added without
   changing the UI or MVVM flow.

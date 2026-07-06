@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:writeflow/domain/models/library_document.dart';
-import 'package:writeflow/domain/repositories/library_repository.dart';
-import 'package:writeflow/presentation/view_models/library_view_model.dart';
+import 'package:inkdoc/domain/models/library_document.dart';
+import 'package:inkdoc/domain/repositories/library_repository.dart';
+import 'package:inkdoc/presentation/view_models/library_view_model.dart';
 
 void main() {
   test('library filters repository documents by title or category', () async {

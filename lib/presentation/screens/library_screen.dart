@@ -1,4 +1,4 @@
-part of '../writeflow_app.dart';
+part of '../inkdoc_app.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({

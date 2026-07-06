@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'app/app_dependencies.dart';
-import 'presentation/writeflow_app.dart';
+import 'presentation/inkdoc_app.dart';
 
-export 'presentation/writeflow_app.dart' show WriteFlowApp;
+export 'presentation/inkdoc_app.dart' show InkDocApp;
 
 void main() {
-  runApp(WriteFlowApp(dependencies: AppDependencies.production()));
+  runApp(InkDocApp(dependencies: AppDependencies.production()));
 }

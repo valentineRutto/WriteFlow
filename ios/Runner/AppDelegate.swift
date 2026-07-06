@@ -15,7 +15,7 @@ import VisionKit
 
     if let controller = window?.rootViewController as? FlutterViewController {
       let channel = FlutterMethodChannel(
-        name: "writeflow/on_device_ai",
+        name: "inkdoc/on_device_ai",
         binaryMessenger: controller.binaryMessenger
       )
 

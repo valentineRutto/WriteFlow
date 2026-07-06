@@ -1,10 +1,10 @@
 {
   "roots": [
-    "writeflow"
+    "inkdoc"
   ],
   "packages": [
     {
-      "name": "writeflow",
+      "name": "inkdoc",
       "version": "1.0.0+1",
       "dependencies": [
         "flutter"

@@ -1,4 +1,4 @@
-name: writeflow
+name: inkdoc
 description: "An offline, on-device document scanning app for Android and iOS."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

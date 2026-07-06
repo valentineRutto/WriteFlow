@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:writeflow/domain/models/scanned_document.dart';
-import 'package:writeflow/domain/repositories/scan_repository.dart';
-import 'package:writeflow/presentation/view_models/scan_view_model.dart';
+import 'package:inkdoc/domain/models/scanned_document.dart';
+import 'package:inkdoc/domain/repositories/scan_repository.dart';
+import 'package:inkdoc/presentation/view_models/scan_view_model.dart';
 
 void main() {
   test('scan delegates selected options to the injected repository', () async {

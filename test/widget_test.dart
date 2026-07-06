@@ -1,16 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:writeflow/main.dart';
+import 'package:inkdoc/main.dart';
 
 void main() {
-  testWidgets('navigates between Inkscribe screens', (tester) async {
+  testWidgets('navigates between InkDoc screens', (tester) async {
     await tester.binding.setSurfaceSize(const Size(430, 920));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const WriteFlowApp());
+    await tester.pumpWidget(const InkDocApp());
 
-    expect(find.text('Inkscribe'), findsOneWidget);
+    expect(find.text('InkDoc'), findsOneWidget);
     expect(find.text('Tap to scan'), findsOneWidget);
 
     await tester.tap(find.text('Tap to scan'));
@@ -48,7 +48,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(430, 920));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const WriteFlowApp());
+    await tester.pumpWidget(const InkDocApp());
 
     await tester.tap(find.text('Tap to scan'));
     await tester.pumpAndSettle();
@@ -75,7 +75,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(430, 920));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const WriteFlowApp());
+    await tester.pumpWidget(const InkDocApp());
 
     await tester.tap(find.byTooltip('Add document type'));
     await tester.pump(const Duration(milliseconds: 300));

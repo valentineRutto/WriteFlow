@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 class NativeDocumentScanner {
   const NativeDocumentScanner({
-    this.channel = const MethodChannel('writeflow/on_device_ai'),
+    this.channel = const MethodChannel('inkdoc/on_device_ai'),
   });
 
   final MethodChannel channel;

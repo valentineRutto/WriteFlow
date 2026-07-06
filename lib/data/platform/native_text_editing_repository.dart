@@ -5,7 +5,7 @@ import 'local_text_editing_repository.dart';
 
 class NativeTextEditingRepository implements TextEditingRepository {
   const NativeTextEditingRepository({
-    this.channel = const MethodChannel('writeflow/on_device_ai'),
+    this.channel = const MethodChannel('inkdoc/on_device_ai'),
     this.fallback = const LocalTextEditingRepository(),
   });
 
