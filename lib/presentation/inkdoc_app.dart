@@ -492,27 +492,40 @@ class _EditRecognisedTextDialogState extends State<EditRecognisedTextDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit recognised text'),
-      content: TextField(
-        controller: _controller,
-        minLines: 6,
-        maxLines: 10,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          hintText: 'Correct the handwriting OCR here...',
+    return Dialog.fullscreen(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: 'Cancel',
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close_rounded),
+          ),
+          title: const Text('Edit recognised text'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(_controller.text),
+              child: const Text('Save'),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: TextField(
+              controller: _controller,
+              expands: true,
+              maxLines: null,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Correct the handwriting OCR here...',
+                contentPadding: EdgeInsets.all(16),
+              ),
+            ),
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

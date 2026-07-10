@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:inkdoc/main.dart';
@@ -57,6 +57,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Edit recognised text'), findsOneWidget);
+    expect(find.byType(Dialog), findsOneWidget);
+    expect(tester.getSize(find.byType(Dialog)), const Size(430, 920));
 
     await tester.enterText(
       find.byType(EditableText).last,
