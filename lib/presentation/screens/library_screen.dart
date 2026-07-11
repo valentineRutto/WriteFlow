@@ -66,6 +66,40 @@ class LibraryScreen extends StatelessWidget {
                     isLast: item == viewModel.documents.last,
                     onTap: () => onOpenDocument(item),
                   ),
+              if (!viewModel.isLoading)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: viewModel.canGoToPreviousPage
+                            ? viewModel.previousPage
+                            : null,
+                        icon: const Icon(Icons.chevron_left_rounded),
+                        label: const Text('Previous'),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Page ${viewModel.currentPage} of ${viewModel.totalPages}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: viewModel.canGoToNextPage
+                            ? viewModel.nextPage
+                            : null,
+                        iconAlignment: IconAlignment.end,
+                        icon: const Icon(Icons.chevron_right_rounded),
+                        label: const Text('Next'),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 16),
             ],
           ),

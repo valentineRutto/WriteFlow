@@ -15,6 +15,26 @@ void main() {
     expect(viewModel.documents, hasLength(1));
     expect(viewModel.documents.single.title, 'Collected poems');
   });
+
+  test('library paginates and resets to page one after search', () async {
+    final viewModel = LibraryViewModel(
+      repository: const _FakeLibraryRepository(),
+      pageSize: 1,
+    );
+    await viewModel.load();
+
+    expect(viewModel.totalPages, 2);
+    expect(viewModel.documents.single.title, 'Daily journal');
+
+    viewModel.nextPage();
+    expect(viewModel.currentPage, 2);
+    expect(viewModel.documents.single.title, 'Collected poems');
+
+    viewModel.search('diary');
+    expect(viewModel.currentPage, 1);
+    expect(viewModel.totalPages, 1);
+    expect(viewModel.documents.single.title, 'Daily journal');
+  });
 }
 
 class _FakeLibraryRepository implements LibraryRepository {

@@ -33,6 +33,17 @@ void main() {
     await tester.tap(find.text('My library'));
     await tester.pump();
 
+    expect(find.text('Page 1 of 2'), findsOneWidget);
+    expect(find.text('Q1 business ledger'), findsNothing);
+
+    await tester.tap(find.text('Next'));
+    await tester.pump();
+    expect(find.text('Page 2 of 2'), findsOneWidget);
+    expect(find.text('Q1 business ledger'), findsOneWidget);
+
+    await tester.tap(find.text('Previous'));
+    await tester.pump();
+
     expect(find.text('Diary - March 1987'), findsOneWidget);
     expect(find.text("Grandma's recipe book"), findsOneWidget);
 
