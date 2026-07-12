@@ -22,7 +22,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const StatusBar(time: '9:41'),
         Expanded(
           child: ListView(
             cacheExtent: 4000,

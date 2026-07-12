@@ -129,15 +129,23 @@ class _InkDocShellState extends State<InkDocShell> {
                     const SizedBox(height: 12),
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        padding: screen == AppScreen.home
+                            ? EdgeInsets.zero
+                            : const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: AppColors.canvas,
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(color: AppColors.border),
+                            borderRadius: screen == AppScreen.home
+                                ? BorderRadius.zero
+                                : BorderRadius.circular(32),
+                            border: screen == AppScreen.home
+                                ? null
+                                : Border.all(color: AppColors.border),
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: screen == AppScreen.home
+                                ? BorderRadius.zero
+                                : BorderRadius.circular(32),
                             child: switch (screen) {
                               AppScreen.home => HomeScreen(
                                 viewModel: _scanViewModel,
