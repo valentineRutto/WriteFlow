@@ -16,7 +16,6 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        //const StatusBar(time: '9:45'),
         Expanded(
           child: ListView(
             padding: EdgeInsets.zero,

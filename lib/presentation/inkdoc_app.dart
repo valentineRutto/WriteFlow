@@ -128,57 +128,37 @@ class _InkDocShellState extends State<InkDocShell> {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: Padding(
-                        padding: screen == AppScreen.home
-                            ? EdgeInsets.zero
-                            : const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.canvas,
-                            borderRadius: screen == AppScreen.home
-                                ? BorderRadius.zero
-                                : BorderRadius.circular(32),
-                            border: screen == AppScreen.home
-                                ? null
-                                : Border.all(color: AppColors.border),
+                      child: ColoredBox(
+                        color: AppColors.canvas,
+                        child: switch (screen) {
+                          AppScreen.home => HomeScreen(
+                            viewModel: _scanViewModel,
+                            documentTypes: _documentTypes,
+                            onAddDocumentType: _addDocumentType,
+                            onEditDocumentType: _editSelectedDocumentType,
+                            onScan: _scan,
+                            onLibrary: () =>
+                                _navigationViewModel.show(AppScreen.library),
                           ),
-                          child: ClipRRect(
-                            borderRadius: screen == AppScreen.home
-                                ? BorderRadius.zero
-                                : BorderRadius.circular(32),
-                            child: switch (screen) {
-                              AppScreen.home => HomeScreen(
-                                viewModel: _scanViewModel,
-                                documentTypes: _documentTypes,
-                                onAddDocumentType: _addDocumentType,
-                                onEditDocumentType: _editSelectedDocumentType,
-                                onScan: _scan,
-                                onLibrary: () => _navigationViewModel.show(
-                                  AppScreen.library,
-                                ),
-                              ),
-                              AppScreen.preview => PreviewScreen(
-                                viewModel: _previewViewModel,
-                                onBack: () =>
-                                    _navigationViewModel.show(AppScreen.home),
-                                onAddPage: () =>
-                                    _navigationViewModel.show(AppScreen.home),
-                                onEditPage: _editCurrentPage,
-                                onHome: () =>
-                                    _navigationViewModel.show(AppScreen.home),
-                                onLibrary: () => _navigationViewModel.show(
-                                  AppScreen.library,
-                                ),
-                              ),
-                              AppScreen.library => LibraryScreen(
-                                viewModel: _libraryViewModel,
-                                onHome: () =>
-                                    _navigationViewModel.show(AppScreen.home),
-                                onOpenDocument: _openLibraryDocument,
-                              ),
-                            },
+                          AppScreen.preview => PreviewScreen(
+                            viewModel: _previewViewModel,
+                            onBack: () =>
+                                _navigationViewModel.show(AppScreen.home),
+                            onAddPage: () =>
+                                _navigationViewModel.show(AppScreen.home),
+                            onEditPage: _editCurrentPage,
+                            onHome: () =>
+                                _navigationViewModel.show(AppScreen.home),
+                            onLibrary: () =>
+                                _navigationViewModel.show(AppScreen.library),
                           ),
-                        ),
+                          AppScreen.library => LibraryScreen(
+                            viewModel: _libraryViewModel,
+                            onHome: () =>
+                                _navigationViewModel.show(AppScreen.home),
+                            onOpenDocument: _openLibraryDocument,
+                          ),
+                        },
                       ),
                     ),
                   ],
