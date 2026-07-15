@@ -123,7 +123,7 @@ class PreviewScreen extends StatelessWidget {
                     OutlinedButton.icon(
                       onPressed: viewModel.isImprovingText
                           ? null
-                          : viewModel.improveCurrentPage,
+                          : () => _cleanCurrentPage(context),
                       icon: viewModel.isImprovingText
                           ? const SizedBox.square(
                               dimension: 16,
@@ -172,5 +172,16 @@ class PreviewScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _cleanCurrentPage(BuildContext context) async {
+    await viewModel.improveCurrentPage();
+    if (!context.mounted || viewModel.errorMessage == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
   }
 }

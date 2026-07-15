@@ -74,7 +74,7 @@ class PreviewViewModel extends ChangeNotifier {
       );
       updateCurrentPageText(
         improvedText,
-        aiEngine: page.aiEngine ?? 'On-device text cleanup',
+        aiEngine: 'Gemma on-device text cleanup',
       );
     } on Object catch (error) {
       _errorMessage = error.toString();
