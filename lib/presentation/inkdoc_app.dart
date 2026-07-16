@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../app/app_dependencies.dart';
+import '../data/export/document_export_service.dart';
 import '../domain/models/library_document.dart';
 import '../domain/models/scanned_document.dart';
 import 'view_models/app_navigation_view_model.dart';
@@ -1602,7 +1605,7 @@ const _documentTypeColorOptions = [
 const exportTypes = [
   ExportType('PDF', Icons.picture_as_pdf_outlined, Color(0xFFA32D2D)),
   ExportType('EPUB', Icons.book_outlined, Color(0xFF185FA5)),
-  ExportType('eBook', Icons.tablet_mac_outlined, AppColors.brownText),
+  ExportType('DOCX', Icons.description_outlined, AppColors.brownText),
 ];
 
 class AppColors {
