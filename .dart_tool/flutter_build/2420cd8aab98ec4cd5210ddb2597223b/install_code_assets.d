@@ -1,0 +1,1 @@
+ /Users/valentinerutto/AndroidStudioProjects/Inkdoc/.dart_tool/flutter_build/2420cd8aab98ec4cd5210ddb2597223b/native_assets.json: 
