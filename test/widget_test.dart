@@ -82,6 +82,60 @@ void main() {
     expect(find.textContaining('The morning light'), findsNothing);
   });
 
+  testWidgets('formats selected recognised text', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(430, 920));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const InkDocApp());
+    await tester.tap(find.text('Tap to scan'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit text').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Bold'), findsOneWidget);
+    expect(find.byTooltip('Italic'), findsOneWidget);
+    expect(find.byTooltip('Underline'), findsOneWidget);
+    expect(find.byTooltip('Bulleted list'), findsOneWidget);
+
+    final editable = find.byType(EditableText).last;
+    await tester.enterText(editable, 'Important note');
+    final state = tester.state<EditableTextState>(editable);
+    state.updateEditingValue(
+      const TextEditingValue(
+        text: 'Important note',
+        selection: TextSelection(baseOffset: 0, extentOffset: 9),
+      ),
+    );
+    await tester.tap(find.byTooltip('Bold'));
+
+    final field = tester.widget<TextField>(find.byType(TextField).last);
+    expect(field.controller!.text, '[b]Important[/b] note');
+    final renderedText = field.controller!.buildTextSpan(
+      context: tester.element(find.byType(TextField).last),
+      style: const TextStyle(),
+      withComposing: false,
+    );
+    expect(
+      renderedText.children!.whereType<TextSpan>().any(
+        (span) =>
+            span.text == 'Important' &&
+            span.style?.fontWeight == FontWeight.w700,
+      ),
+      isTrue,
+    );
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('[b]'), findsNothing);
+    expect(
+      tester
+          .widgetList<RichText>(find.byType(RichText))
+          .any((widget) => widget.text.toPlainText() == 'Important note'),
+      isTrue,
+    );
+  });
+
   testWidgets('adds and edits document types from the home screen', (
     tester,
   ) async {

@@ -466,19 +466,118 @@ class EditRecognisedTextDialog extends StatefulWidget {
       _EditRecognisedTextDialogState();
 }
 
+class _FormattedTextEditingController extends TextEditingController {
+  _FormattedTextEditingController({super.text});
+
+  static final RegExp _tagPattern = RegExp(r'\[(/?)([biu])\]');
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final baseStyle = style ?? const TextStyle();
+    final spans = <TextSpan>[];
+    final styles = <TextStyle>[baseStyle];
+    var cursor = 0;
+
+    for (final match in _tagPattern.allMatches(text)) {
+      if (match.start > cursor) {
+        spans.add(
+          TextSpan(
+            text: text.substring(cursor, match.start),
+            style: styles.last,
+          ),
+        );
+      }
+
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: styles.last.copyWith(
+            color: Colors.transparent,
+            fontSize: 0.01,
+            letterSpacing: 0,
+          ),
+        ),
+      );
+
+      if (match.group(1) == '/') {
+        if (styles.length > 1) styles.removeLast();
+      } else {
+        final current = styles.last;
+        styles.add(switch (match.group(2)) {
+          'b' => current.copyWith(fontWeight: FontWeight.w700),
+          'i' => current.copyWith(fontStyle: FontStyle.italic),
+          'u' => current.copyWith(decoration: TextDecoration.underline),
+          _ => current,
+        });
+      }
+      cursor = match.end;
+    }
+
+    if (cursor < text.length) {
+      spans.add(TextSpan(text: text.substring(cursor), style: styles.last));
+    }
+    return TextSpan(style: baseStyle, children: spans);
+  }
+}
+
 class _EditRecognisedTextDialogState extends State<EditRecognisedTextDialog> {
-  late final TextEditingController _controller;
+  late final _FormattedTextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialText);
+    _controller = _FormattedTextEditingController(text: widget.initialText);
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _formatSelection(String openingTag, String closingTag) {
+    final selection = _controller.selection;
+    if (!selection.isValid) return;
+
+    final text = _controller.text;
+    final selectedText = text.substring(selection.start, selection.end);
+    final replacement = '$openingTag$selectedText$closingTag';
+    _controller.value = _controller.value.copyWith(
+      text: text.replaceRange(selection.start, selection.end, replacement),
+      selection: TextSelection(
+        baseOffset: selection.start + openingTag.length,
+        extentOffset: selection.start + openingTag.length + selectedText.length,
+      ),
+      composing: TextRange.empty,
+    );
+  }
+
+  void _toggleBullets() {
+    final selection = _controller.selection;
+    if (!selection.isValid) return;
+
+    final text = _controller.text;
+    final lineStart = text.lastIndexOf('\n', selection.start - 1) + 1;
+    final nextLineBreak = text.indexOf('\n', selection.end);
+    final lineEnd = nextLineBreak == -1 ? text.length : nextLineBreak;
+    final lines = text.substring(lineStart, lineEnd).split('\n');
+    final removeBullets = lines.every((line) => line.startsWith('• '));
+    final replacement = lines
+        .map((line) => removeBullets ? line.substring(2) : '• $line')
+        .join('\n');
+
+    _controller.value = _controller.value.copyWith(
+      text: text.replaceRange(lineStart, lineEnd, replacement),
+      selection: TextSelection(
+        baseOffset: lineStart,
+        extentOffset: lineStart + replacement.length,
+      ),
+      composing: TextRange.empty,
+    );
   }
 
   @override
@@ -501,19 +600,57 @@ class _EditRecognisedTextDialogState extends State<EditRecognisedTextDialog> {
           ],
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: TextField(
-              controller: _controller,
-              expands: true,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.top,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Correct the handwriting OCR here...',
-                contentPadding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Material(
+                color: AppColors.surface,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Bold',
+                        onPressed: () => _formatSelection('[b]', '[/b]'),
+                        icon: const Icon(Icons.format_bold_rounded),
+                      ),
+                      IconButton(
+                        tooltip: 'Italic',
+                        onPressed: () => _formatSelection('[i]', '[/i]'),
+                        icon: const Icon(Icons.format_italic_rounded),
+                      ),
+                      IconButton(
+                        tooltip: 'Underline',
+                        onPressed: () => _formatSelection('[u]', '[/u]'),
+                        icon: const Icon(Icons.format_underlined_rounded),
+                      ),
+                      IconButton(
+                        tooltip: 'Bulleted list',
+                        onPressed: _toggleBullets,
+                        icon: const Icon(Icons.format_list_bulleted_rounded),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              const Divider(height: 1),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: TextField(
+                    controller: _controller,
+                    expands: true,
+                    maxLines: null,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Correct the handwriting OCR here...',
+                      contentPadding: EdgeInsets.all(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1010,6 +1147,7 @@ class OcrPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayText = page?.text ?? 'No recognized text yet.';
     final textStyle = TextStyle(
       color: AppColors.textPrimary,
       fontSize: 13,
@@ -1058,10 +1196,58 @@ class OcrPreviewCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(page?.text ?? 'No recognized text yet.', style: textStyle),
+          if (_containsFormatting(displayText))
+            RichText(
+              text: TextSpan(
+                style: textStyle,
+                children: _formattedTextSpans(displayText, textStyle),
+              ),
+            )
+          else
+            Text(displayText, style: textStyle),
         ],
       ),
     );
+  }
+
+  bool _containsFormatting(String source) {
+    return RegExp(r'\[/?[biu]\]').hasMatch(source);
+  }
+
+  List<TextSpan> _formattedTextSpans(String source, TextStyle baseStyle) {
+    final spans = <TextSpan>[];
+    final styles = <TextStyle>[baseStyle];
+    final tagPattern = RegExp(r'\[(/?)([biu])\]');
+    var cursor = 0;
+
+    for (final match in tagPattern.allMatches(source)) {
+      if (match.start > cursor) {
+        spans.add(
+          TextSpan(
+            text: source.substring(cursor, match.start),
+            style: styles.last,
+          ),
+        );
+      }
+
+      if (match.group(1) == '/') {
+        if (styles.length > 1) styles.removeLast();
+      } else {
+        final current = styles.last;
+        styles.add(switch (match.group(2)) {
+          'b' => current.copyWith(fontWeight: FontWeight.w700),
+          'i' => current.copyWith(fontStyle: FontStyle.italic),
+          'u' => current.copyWith(decoration: TextDecoration.underline),
+          _ => current,
+        });
+      }
+      cursor = match.end;
+    }
+
+    if (cursor < source.length) {
+      spans.add(TextSpan(text: source.substring(cursor), style: styles.last));
+    }
+    return spans;
   }
 }
 
