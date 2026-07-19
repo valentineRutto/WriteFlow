@@ -1,3 +1,17 @@
+enum ScannedContentType { text, table, figure, formula }
+
+class ScannedContentBlock {
+  const ScannedContentBlock({
+    required this.type,
+    required this.text,
+    this.confidence = 0,
+  });
+
+  final ScannedContentType type;
+  final String text;
+  final double confidence;
+}
+
 class ScannedPage {
   const ScannedPage({
     required this.number,
@@ -7,6 +21,7 @@ class ScannedPage {
     this.imageUri,
     this.aiEngine,
     this.lowConfidencePhrases = const [],
+    this.contentBlocks = const [],
   });
 
   final int number;
@@ -16,6 +31,7 @@ class ScannedPage {
   final String? aiEngine;
   final double confidence;
   final List<String> lowConfidencePhrases;
+  final List<ScannedContentBlock> contentBlocks;
 
   ScannedPage copyWith({
     int? number,
@@ -25,6 +41,7 @@ class ScannedPage {
     String? aiEngine,
     double? confidence,
     List<String>? lowConfidencePhrases,
+    List<ScannedContentBlock>? contentBlocks,
   }) {
     return ScannedPage(
       number: number ?? this.number,
@@ -34,6 +51,7 @@ class ScannedPage {
       aiEngine: aiEngine ?? this.aiEngine,
       confidence: confidence ?? this.confidence,
       lowConfidencePhrases: lowConfidencePhrases ?? this.lowConfidencePhrases,
+      contentBlocks: contentBlocks ?? this.contentBlocks,
     );
   }
 }

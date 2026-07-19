@@ -36,7 +36,11 @@ class NativeScanRepository implements ScanRepository {
 
       final pages = <ScannedPage>[];
       for (final page in scanResult.pages) {
-        final improvedText = textEditingRepository == null
+        final hasStructuredContent = page.contentBlocks.any(
+          (block) => block.type != ScannedContentType.text,
+        );
+        final improvedText =
+            textEditingRepository == null || hasStructuredContent
             ? page.text
             : await textEditingRepository!.improveHandwritingText(page.text);
         pages.add(
@@ -48,6 +52,7 @@ class NativeScanRepository implements ScanRepository {
             aiEngine: page.aiEngine ?? 'On-device cleanup',
             confidence: page.confidence,
             lowConfidencePhrases: page.lowConfidencePhrases,
+            contentBlocks: page.contentBlocks,
           ),
         );
       }

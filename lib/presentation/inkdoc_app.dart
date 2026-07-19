@@ -1196,7 +1196,9 @@ class OcrPreviewCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          if (_containsFormatting(displayText))
+          if (page != null && page!.contentBlocks.isNotEmpty)
+            ...page!.contentBlocks.map(_structuredBlock)
+          else if (_containsFormatting(displayText))
             RichText(
               text: TextSpan(
                 style: textStyle,
@@ -1205,6 +1207,83 @@ class OcrPreviewCard extends StatelessWidget {
             )
           else
             Text(displayText, style: textStyle),
+        ],
+      ),
+    );
+  }
+
+  Widget _structuredBlock(ScannedContentBlock block) {
+    final (icon, label, background) = switch (block.type) {
+      ScannedContentType.table => (
+        Icons.table_chart_outlined,
+        'Table',
+        AppColors.mint.withValues(alpha: 0.45),
+      ),
+      ScannedContentType.figure => (
+        Icons.image_outlined,
+        'Figure',
+        const Color(0xFFF1F3F7),
+      ),
+      ScannedContentType.formula => (
+        Icons.functions_rounded,
+        'Formula',
+        const Color(0xFFF7F2E8),
+      ),
+      ScannedContentType.text => (
+        Icons.notes_rounded,
+        'Text',
+        Colors.transparent,
+      ),
+    };
+    final isStructured = block.type != ScannedContentType.text;
+    final contentStyle = TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 13,
+      height: 1.55,
+      fontFamily: block.type == ScannedContentType.table
+          ? 'monospace'
+          : 'Georgia',
+      fontStyle: block.type == ScannedContentType.formula
+          ? FontStyle.italic
+          : FontStyle.normal,
+    );
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: isStructured ? const EdgeInsets.all(10) : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(8),
+        border: isStructured ? Border.all(color: AppColors.borderLight) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isStructured) ...[
+            Row(
+              children: [
+                Icon(icon, size: 15, color: AppColors.darkMintText),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.darkMintText,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+          ],
+          if (block.type == ScannedContentType.table)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text(block.text, style: contentStyle),
+            )
+          else
+            Text(block.text, style: contentStyle),
         ],
       ),
     );

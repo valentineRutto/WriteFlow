@@ -9,6 +9,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -128,8 +129,22 @@ class MainActivity : FlutterActivity() {
     private fun recognizePage(pageNumber: Int, imageUri: Uri): Map<String, Any?> {
         val image = InputImage.fromFilePath(applicationContext, imageUri)
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        val recognizedText = Tasks.await(recognizer.process(image)).text
-        val cleanedText = cleanRecognizedText(recognizedText)
+        val result = try {
+            Tasks.await(recognizer.process(image))
+        } finally {
+            recognizer.close()
+        }
+        val recognizedText = result.text
+        val contentBlocks = result.textBlocks.map { block -> contentBlock(block) }
+        val structuredText = contentBlocks
+            .mapNotNull { block -> block["text"] as? String }
+            .filter { text -> text.isNotBlank() }
+            .joinToString("\n\n")
+        val cleanedText = if (structuredText.isBlank()) {
+            cleanRecognizedText(recognizedText)
+        } else {
+            structuredText
+        }
         val confidence = if (cleanedText.isBlank()) 0.45 else 0.88
 
         return mapOf(
@@ -140,7 +155,79 @@ class MainActivity : FlutterActivity() {
             "confidence" to confidence,
             "aiEngine" to "Local OCR cleanup; ready for Gemma LiteRT-LM",
             "lowConfidencePhrases" to lowConfidencePhrases(cleanedText),
+            "contentBlocks" to contentBlocks,
         )
+    }
+
+    private fun contentBlock(block: Text.TextBlock): Map<String, Any?> {
+        val lines = block.lines
+        val type = when {
+            isFigureCaption(block.text) -> "figure"
+            isFormula(block.text) -> "formula"
+            isTable(lines) -> "table"
+            else -> "text"
+        }
+        val blockText = lines
+            .joinToString("\n") { line ->
+                if (type == "table") tableLine(line) else line.text.trim()
+            }
+            .trim()
+
+        return mapOf(
+            "type" to type,
+            "text" to blockText,
+            "confidence" to if (blockText.isBlank()) 0.45 else 0.88,
+        )
+    }
+
+    private fun isFigureCaption(text: String): Boolean {
+        return Regex(
+            "^(fig(?:ure)?|diagram|chart|graph|illustration)\\s*[.:#-]?\\s*\\d*",
+            RegexOption.IGNORE_CASE,
+        ).containsMatchIn(text.trim())
+    }
+
+    private fun isFormula(text: String): Boolean {
+        val compact = text.replace(" ", "")
+        if (compact.isBlank()) return false
+
+        val hasEquation = Regex("[A-Za-z0-9)²³ⁿ]+[=<>≈≤≥±×÷∑√∫][A-Za-z0-9(√∑∫]")
+            .containsMatchIn(compact)
+        val mathCharacters = compact.count { character ->
+            character in "=+-×÷/<>≈≤≥±∑√∫^²³ⁿ()[]{}"
+        }
+        return hasEquation || (mathCharacters >= 2 && mathCharacters * 4 >= compact.length)
+    }
+
+    private fun isTable(lines: List<Text.Line>): Boolean {
+        if (lines.size < 2) return false
+        val gapCounts = lines.map { line ->
+            val elements = line.elements.sortedBy { element -> element.boundingBox?.left ?: 0 }
+            elements.zipWithNext().count { (left, right) ->
+                val leftBox = left.boundingBox
+                val rightBox = right.boundingBox
+                leftBox != null && rightBox != null &&
+                    rightBox.left - leftBox.right > maxOf(24, leftBox.height())
+            }
+        }
+        return gapCounts.count { count -> count > 0 } >= 2 &&
+            gapCounts.filter { count -> count > 0 }.distinct().size <= 2
+    }
+
+    private fun tableLine(line: Text.Line): String {
+        val elements = line.elements.sortedBy { element -> element.boundingBox?.left ?: 0 }
+        if (elements.isEmpty()) return line.text.trim()
+
+        val result = StringBuilder(elements.first().text)
+        elements.zipWithNext().forEach { (left, right) ->
+            val leftBox = left.boundingBox
+            val rightBox = right.boundingBox
+            val isColumnGap = leftBox != null && rightBox != null &&
+                rightBox.left - leftBox.right > maxOf(24, leftBox.height())
+            result.append(if (isColumnGap) "\t" else " ")
+            result.append(right.text)
+        }
+        return result.toString()
     }
 
     private fun cleanRecognizedText(text: String): String {

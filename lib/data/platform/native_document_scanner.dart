@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import '../../domain/models/scanned_document.dart';
+
 class NativeDocumentScanner {
   const NativeDocumentScanner({
     this.channel = const MethodChannel('inkdoc/on_device_ai'),
@@ -64,6 +66,7 @@ class NativeScannedPage {
     this.imageUri,
     this.aiEngine,
     this.lowConfidencePhrases = const [],
+    this.contentBlocks = const [],
   });
 
   factory NativeScannedPage.fromMap(Map<Object?, Object?> map) {
@@ -71,6 +74,13 @@ class NativeScannedPage {
     final lowConfidencePhrases = rawPhrases is List
         ? rawPhrases.whereType<String>().toList(growable: false)
         : const <String>[];
+    final rawBlocks = map['contentBlocks'];
+    final contentBlocks = rawBlocks is List
+        ? rawBlocks
+              .whereType<Map<Object?, Object?>>()
+              .map(_contentBlockFromMap)
+              .toList(growable: false)
+        : const <ScannedContentBlock>[];
 
     return NativeScannedPage(
       number: map['number'] as int? ?? 1,
@@ -80,6 +90,7 @@ class NativeScannedPage {
       aiEngine: map['aiEngine'] as String?,
       confidence: (map['confidence'] as num?)?.toDouble() ?? 0,
       lowConfidencePhrases: lowConfidencePhrases,
+      contentBlocks: contentBlocks,
     );
   }
 
@@ -90,4 +101,18 @@ class NativeScannedPage {
   final String? aiEngine;
   final double confidence;
   final List<String> lowConfidencePhrases;
+  final List<ScannedContentBlock> contentBlocks;
+}
+
+ScannedContentBlock _contentBlockFromMap(Map<Object?, Object?> map) {
+  final typeName = map['type'] as String? ?? 'text';
+  final type = ScannedContentType.values.firstWhere(
+    (value) => value.name == typeName,
+    orElse: () => ScannedContentType.text,
+  );
+  return ScannedContentBlock(
+    type: type,
+    text: map['text'] as String? ?? '',
+    confidence: (map['confidence'] as num?)?.toDouble() ?? 0,
+  );
 }

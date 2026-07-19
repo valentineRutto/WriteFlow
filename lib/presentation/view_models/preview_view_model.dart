@@ -94,6 +94,7 @@ class PreviewViewModel extends ChangeNotifier {
     pages[_selectedPage] = pages[_selectedPage].copyWith(
       text: text,
       aiEngine: aiEngine ?? pages[_selectedPage].aiEngine,
+      contentBlocks: const [],
     );
     _document = document.copyWith(pages: pages);
     notifyListeners();
