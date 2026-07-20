@@ -1,6 +1,7 @@
 import '../data/repositories/demo_library_repository.dart';
 import '../data/repositories/demo_scan_repository.dart';
 import '../data/repositories/native_scan_repository.dart';
+import '../data/repositories/local_library_repository.dart';
 import '../data/platform/gemma_text_editing_repository.dart';
 import '../domain/repositories/library_repository.dart';
 import '../domain/repositories/scan_repository.dart';
@@ -15,12 +16,13 @@ class AppDependencies {
 
   factory AppDependencies.production() {
     final textEditingRepository = GemmaTextEditingRepository();
+    final libraryRepository = LocalLibraryRepository();
 
     return AppDependencies(
       scanRepository: NativeScanRepository(
         textEditingRepository: textEditingRepository,
       ),
-      libraryRepository: DemoLibraryRepository(),
+      libraryRepository: libraryRepository,
       textEditingRepository: textEditingRepository,
     );
   }

@@ -59,6 +59,7 @@ class _InkDocShellState extends State<InkDocShell> {
     _navigationViewModel = AppNavigationViewModel();
     _scanViewModel = ScanViewModel(
       repository: widget.dependencies.scanRepository,
+      libraryRepository: widget.dependencies.libraryRepository,
     );
     _previewViewModel = PreviewViewModel(
       textEditingRepository: widget.dependencies.textEditingRepository,
@@ -91,11 +92,17 @@ class _InkDocShellState extends State<InkDocShell> {
     }
 
     _previewViewModel.showDocument(document);
+    await _libraryViewModel.load();
+    if (!mounted) return;
     _navigationViewModel.show(AppScreen.preview);
   }
 
-  void _openLibraryDocument(LibraryDocument document) {
-    _previewViewModel.showDocument(_scannedDocumentFromLibraryItem(document));
+  Future<void> _openLibraryDocument(LibraryDocument document) async {
+    final saved = await _libraryViewModel.openDocument(document);
+    if (!mounted) return;
+    _previewViewModel.showDocument(
+      saved ?? _scannedDocumentFromLibraryItem(document),
+    );
     _navigationViewModel.show(AppScreen.preview);
   }
 

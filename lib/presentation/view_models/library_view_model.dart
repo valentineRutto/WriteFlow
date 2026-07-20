@@ -1,81 +1,93 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../domain/models/library_document.dart';
+import '../../domain/models/scanned_document.dart';
 import '../../domain/repositories/library_repository.dart';
 
 class LibraryViewModel extends ChangeNotifier {
-  LibraryViewModel({required LibraryRepository repository, this.pageSize = 5})
+  LibraryViewModel({required LibraryRepository repository, this.pageSize = 20})
     : assert(pageSize > 0),
       _repository = repository;
 
   final LibraryRepository _repository;
   final int pageSize;
 
-  List<LibraryDocument> _documents = const [];
+  final List<LibraryDocument> _documents = [];
   String _query = '';
   bool _isLoading = false;
-  int _currentPage = 0;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _loadGeneration = 0;
+  Timer? _searchDebounce;
 
+  List<LibraryDocument> get documents => List.unmodifiable(_documents);
   bool get isLoading => _isLoading;
-  int get currentPage => _currentPage + 1;
-  int get totalPages =>
-      (_filteredDocuments.length / pageSize).ceil().clamp(1, 1 << 31);
-  bool get canGoToPreviousPage => _currentPage > 0;
-  bool get canGoToNextPage => _currentPage + 1 < totalPages;
-
-  List<LibraryDocument> get documents {
-    final filtered = _filteredDocuments;
-    final start = _currentPage * pageSize;
-    if (start >= filtered.length) return const [];
-    return filtered.sublist(
-      start,
-      (start + pageSize).clamp(0, filtered.length),
-    );
-  }
-
-  List<LibraryDocument> get _filteredDocuments {
-    final normalizedQuery = _query.trim().toLowerCase();
-    if (normalizedQuery.isEmpty) {
-      return _documents;
-    }
-
-    return _documents
-        .where(
-          (document) =>
-              document.title.toLowerCase().contains(normalizedQuery) ||
-              document.category.toLowerCase().contains(normalizedQuery),
-        )
-        .toList(growable: false);
-  }
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
 
   Future<void> load() async {
+    final generation = ++_loadGeneration;
     _isLoading = true;
+    _isLoadingMore = false;
+    _hasMore = true;
+    _documents.clear();
     notifyListeners();
-    _documents = await _repository.loadDocuments();
-    _currentPage = 0;
-    _isLoading = false;
+
+    try {
+      final page = await _repository.loadDocuments(
+        limit: pageSize,
+        query: _query,
+      );
+      if (generation != _loadGeneration) return;
+      _documents.addAll(page);
+      _hasMore = page.length == pageSize;
+    } finally {
+      if (generation == _loadGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final generation = _loadGeneration;
+    _isLoadingMore = true;
     notifyListeners();
+    try {
+      final page = await _repository.loadDocuments(
+        offset: _documents.length,
+        limit: pageSize,
+        query: _query,
+      );
+      if (generation != _loadGeneration) return;
+      _documents.addAll(page);
+      _hasMore = page.length == pageSize;
+    } finally {
+      if (generation == _loadGeneration) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
+    }
   }
 
   void search(String query) {
-    if (_query == query) {
-      return;
-    }
-
+    if (_query == query) return;
     _query = query;
-    _currentPage = 0;
-    notifyListeners();
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), load);
   }
 
-  void nextPage() {
-    if (!canGoToNextPage) return;
-    _currentPage++;
-    notifyListeners();
+  Future<ScannedDocument?> openDocument(LibraryDocument document) async {
+    final id = document.id;
+    return id == null ? null : _repository.loadDocument(id);
   }
 
-  void previousPage() {
-    if (!canGoToPreviousPage) return;
-    _currentPage--;
-    notifyListeners();
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 }

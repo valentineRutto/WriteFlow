@@ -1,6 +1,6 @@
 part of '../inkdoc_app.dart';
 
-class LibraryScreen extends StatelessWidget {
+class LibraryScreen extends StatefulWidget {
   const LibraryScreen({
     super.key,
     required this.viewModel,
@@ -13,11 +13,40 @@ class LibraryScreen extends StatelessWidget {
   final ValueChanged<LibraryDocument> onOpenDocument;
 
   @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.extentAfter < 320) {
+      widget.viewModel.loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = widget.viewModel;
     return Column(
       children: [
         Expanded(
           child: ListView(
+            controller: _scrollController,
             padding: EdgeInsets.zero,
             children: [
               // const AppTopBar(
@@ -63,47 +92,34 @@ class LibraryScreen extends StatelessWidget {
                   LibraryItemTile(
                     item: item,
                     isLast: item == viewModel.documents.last,
-                    onTap: () => onOpenDocument(item),
+                    onTap: () => widget.onOpenDocument(item),
                   ),
-              if (!viewModel.isLoading)
+              if (!viewModel.isLoading && viewModel.documents.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                  child: Row(
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: viewModel.canGoToPreviousPage
-                            ? viewModel.previousPage
-                            : null,
-                        icon: const Icon(Icons.chevron_left_rounded),
-                        label: const Text('Previous'),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Page ${viewModel.currentPage} of ${viewModel.totalPages}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: viewModel.canGoToNextPage
-                            ? viewModel.nextPage
-                            : null,
-                        iconAlignment: IconAlignment.end,
-                        icon: const Icon(Icons.chevron_right_rounded),
-                        label: const Text('Next'),
-                      ),
-                    ],
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text(
+                      'No saved documents found.',
+                      style: TextStyle(color: AppColors.textMuted),
+                    ),
+                  ),
+                ),
+              if (viewModel.isLoadingMore)
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
               const SizedBox(height: 16),
             ],
           ),
         ),
-        AppNavBar(current: AppScreen.library, onHome: onHome, onLibrary: () {}),
+        AppNavBar(
+          current: AppScreen.library,
+          onHome: widget.onHome,
+          onLibrary: () {},
+        ),
       ],
     );
   }

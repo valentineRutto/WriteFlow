@@ -1,4 +1,5 @@
 import '../../domain/models/library_document.dart';
+import '../../domain/models/scanned_document.dart';
 import '../../domain/repositories/library_repository.dart';
 
 class DemoLibraryRepository implements LibraryRepository {
@@ -38,7 +39,31 @@ class DemoLibraryRepository implements LibraryRepository {
   ];
 
   @override
-  Future<List<LibraryDocument>> loadDocuments() async {
-    return _documents;
+  Future<List<LibraryDocument>> loadDocuments({
+    int offset = 0,
+    int limit = 20,
+    String query = '',
+  }) async {
+    final normalized = query.trim().toLowerCase();
+    final matches = normalized.isEmpty
+        ? _documents
+        : _documents
+              .where(
+                (item) =>
+                    item.title.toLowerCase().contains(normalized) ||
+                    item.category.toLowerCase().contains(normalized),
+              )
+              .toList(growable: false);
+    if (offset >= matches.length) return const [];
+    return matches.sublist(offset, (offset + limit).clamp(0, matches.length));
   }
+
+  @override
+  Future<ScannedDocument?> loadDocument(int id) async => null;
+
+  @override
+  Future<void> saveDocument(
+    ScannedDocument document, {
+    String? category,
+  }) async {}
 }

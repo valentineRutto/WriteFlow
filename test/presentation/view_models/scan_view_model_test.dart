@@ -1,12 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inkdoc/domain/models/scanned_document.dart';
 import 'package:inkdoc/domain/repositories/scan_repository.dart';
+import 'package:inkdoc/domain/models/library_document.dart';
+import 'package:inkdoc/domain/repositories/library_repository.dart';
 import 'package:inkdoc/presentation/view_models/scan_view_model.dart';
 
 void main() {
   test('scan delegates selected options to the injected repository', () async {
     final repository = _FakeScanRepository();
-    final viewModel = ScanViewModel(repository: repository);
+    final libraryRepository = _FakeLibraryRepository();
+    final viewModel = ScanViewModel(
+      repository: repository,
+      libraryRepository: libraryRepository,
+    );
 
     viewModel.selectDocumentType(2);
     viewModel.setBatchMode(true);
@@ -16,8 +22,31 @@ void main() {
     expect(repository.documentTypeIndex, 2);
     expect(repository.batchMode, isTrue);
     expect(document?.pages, hasLength(2));
+    expect(libraryRepository.savedDocument, same(document));
     expect(viewModel.status, ScanStatus.completed);
   });
+}
+
+class _FakeLibraryRepository implements LibraryRepository {
+  ScannedDocument? savedDocument;
+
+  @override
+  Future<void> saveDocument(
+    ScannedDocument document, {
+    String? category,
+  }) async {
+    savedDocument = document;
+  }
+
+  @override
+  Future<ScannedDocument?> loadDocument(int id) async => null;
+
+  @override
+  Future<List<LibraryDocument>> loadDocuments({
+    int offset = 0,
+    int limit = 20,
+    String query = '',
+  }) async => const [];
 }
 
 class _FakeScanRepository implements ScanRepository {
