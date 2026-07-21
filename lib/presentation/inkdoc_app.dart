@@ -999,7 +999,7 @@ class BatchScanTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1011,10 +1011,15 @@ class BatchScanTile extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Scan multiple pages in one session',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  value
+                      ? 'Capture up to 10 pages as one document'
+                      : 'Capture one page per scan',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),

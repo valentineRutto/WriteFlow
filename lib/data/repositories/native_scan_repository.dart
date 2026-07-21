@@ -7,6 +7,8 @@ import '../platform/native_document_scanner.dart';
 import 'demo_scan_repository.dart';
 
 class NativeScanRepository implements ScanRepository {
+  static const maxBatchPages = 10;
+
   const NativeScanRepository({
     this.scanner = const NativeDocumentScanner(),
     this.textEditingRepository,
@@ -24,7 +26,8 @@ class NativeScanRepository implements ScanRepository {
   }) async {
     try {
       final scanResult = await scanner.scanDocument(
-        pageLimit: batchMode ? 10 : 1,
+        pageLimit: batchMode ? maxBatchPages : 1,
+        batchMode: batchMode,
       );
 
       if (scanResult.pages.isEmpty) {

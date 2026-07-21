@@ -49,7 +49,9 @@ class MainActivity : FlutterActivity() {
 
         pendingScanResult = result
 
-        val pageLimit = call.argument<Int>("pageLimit") ?: 1
+        val batchMode = call.argument<Boolean>("batchMode") ?: false
+        val requestedPageLimit = call.argument<Int>("pageLimit") ?: 1
+        val pageLimit = if (batchMode) requestedPageLimit.coerceIn(2, 10) else 1
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(false)
             .setPageLimit(pageLimit)

@@ -90,7 +90,11 @@ class HomeScreen extends StatelessWidget {
                       : const Icon(Icons.photo_camera_outlined),
                   label: Text(
                     viewModel.isScanning
-                        ? 'Processing scan...'
+                        ? viewModel.batchMode
+                              ? 'Processing batch...'
+                              : 'Processing scan...'
+                        : viewModel.batchMode
+                        ? 'Scan up to 10 pages'
                         : 'Open camera scanner',
                   ),
                   style: FilledButton.styleFrom(

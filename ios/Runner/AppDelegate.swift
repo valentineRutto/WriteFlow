@@ -6,6 +6,7 @@ import VisionKit
 @main
 @objc class AppDelegate: FlutterAppDelegate, VNDocumentCameraViewControllerDelegate {
   private var pendingScanResult: FlutterResult?
+  private var pendingPageLimit = 1
 
   override func application(
     _ application: UIApplication,
@@ -22,7 +23,13 @@ import VisionKit
       channel.setMethodCallHandler { [weak self] call, result in
         switch call.method {
         case "scanDocument":
-          self?.scanDocument(result: result)
+          let arguments = call.arguments as? [String: Any]
+          let batchMode = arguments?["batchMode"] as? Bool ?? false
+          let requestedLimit = arguments?["pageLimit"] as? Int ?? 1
+          self?.scanDocument(
+            pageLimit: batchMode ? min(max(requestedLimit, 2), 10) : 1,
+            result: result
+          )
         case "improveText":
           let arguments = call.arguments as? [String: Any]
           let text = arguments?["text"] as? String ?? ""
@@ -36,7 +43,7 @@ import VisionKit
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  private func scanDocument(result: @escaping FlutterResult) {
+  private func scanDocument(pageLimit: Int, result: @escaping FlutterResult) {
     guard pendingScanResult == nil else {
       result(FlutterError(
         code: "SCAN_IN_PROGRESS",
@@ -56,6 +63,7 @@ import VisionKit
     }
 
     pendingScanResult = result
+    pendingPageLimit = pageLimit
 
     let scanner = VNDocumentCameraViewController()
     scanner.delegate = self
@@ -71,7 +79,8 @@ import VisionKit
     DispatchQueue.global(qos: .userInitiated).async {
       var pages: [[String: Any?]] = []
 
-      for index in 0..<scan.pageCount {
+      let pageCount = min(scan.pageCount, self.pendingPageLimit)
+      for index in 0..<pageCount {
         let image = scan.imageOfPage(at: index)
         let rawText = self.recognizeText(in: image)
         let cleanedText = self.cleanRecognizedText(rawText)
@@ -95,6 +104,7 @@ import VisionKit
           "pages": pages,
         ])
         self.pendingScanResult = nil
+        self.pendingPageLimit = 1
       }
     }
   }
@@ -107,6 +117,7 @@ import VisionKit
       details: nil
     ))
     pendingScanResult = nil
+    pendingPageLimit = 1
   }
 
   func documentCameraViewController(
@@ -120,6 +131,7 @@ import VisionKit
       details: nil
     ))
     pendingScanResult = nil
+    pendingPageLimit = 1
   }
 
   private func recognizeText(in image: UIImage) -> String {

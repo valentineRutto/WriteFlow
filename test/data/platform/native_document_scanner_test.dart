@@ -1,8 +1,11 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inkdoc/data/platform/native_document_scanner.dart';
 import 'package:inkdoc/domain/models/scanned_document.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('parses tables figures and formulas from the native scanner', () {
     final result = NativeScanResult.fromMap({
       'engine': 'ML Kit',
@@ -54,6 +57,48 @@ void main() {
     expect(
       result.pages.single.contentBlocks.single.type,
       ScannedContentType.text,
+    );
+  });
+
+  test('passes batch settings and enforces the requested page limit', () async {
+    const channel = MethodChannel('inkdoc/test_scanner');
+    MethodCall? receivedCall;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          receivedCall = call;
+          return {
+            'pages': List.generate(
+              4,
+              (index) => <Object?, Object?>{
+                'number': index + 1,
+                'text': 'Page ${index + 1}',
+              },
+            ),
+          };
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+
+    final result = await const NativeDocumentScanner(
+      channel: channel,
+    ).scanDocument(pageLimit: 3, batchMode: true);
+
+    expect(receivedCall?.method, 'scanDocument');
+    expect(receivedCall?.arguments, containsPair('batchMode', true));
+    expect(receivedCall?.arguments, containsPair('pageLimit', 3));
+    expect(result.pages, hasLength(3));
+    expect(result.pages.last.number, 3);
+  });
+
+  test('rejects an invalid page limit before opening the scanner', () {
+    expect(
+      () => const NativeDocumentScanner().scanDocument(
+        pageLimit: 0,
+        batchMode: false,
+      ),
+      throwsArgumentError,
     );
   });
 }

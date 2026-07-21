@@ -9,10 +9,17 @@ class NativeDocumentScanner {
 
   final MethodChannel channel;
 
-  Future<NativeScanResult> scanDocument({required int pageLimit}) async {
+  Future<NativeScanResult> scanDocument({
+    required int pageLimit,
+    required bool batchMode,
+  }) async {
+    if (pageLimit < 1) {
+      throw ArgumentError.value(pageLimit, 'pageLimit', 'Must be at least 1');
+    }
     final result = await channel
         .invokeMapMethod<String, Object?>('scanDocument', {
           'pageLimit': pageLimit,
+          'batchMode': batchMode,
           'output': 'jpeg_pdf',
           'ocr': 'handwriting',
           'postprocess': 'on_device_ai',
@@ -25,7 +32,13 @@ class NativeDocumentScanner {
       );
     }
 
-    return NativeScanResult.fromMap(result);
+    final scanResult = NativeScanResult.fromMap(result);
+    if (scanResult.pages.length <= pageLimit) return scanResult;
+    return NativeScanResult(
+      pages: scanResult.pages.take(pageLimit).toList(growable: false),
+      engine: scanResult.engine,
+      pdfUri: scanResult.pdfUri,
+    );
   }
 }
 
