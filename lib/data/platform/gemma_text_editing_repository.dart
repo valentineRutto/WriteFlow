@@ -12,6 +12,8 @@ class GemmaTextEditingRepository implements TextEditingRepository {
   final int maxTokens;
   InferenceModel? _model;
 
+  void resetModel() => _model = null;
+
   @override
   Future<String> improveHandwritingText(String text) async {
     final sourceText = text.trim();

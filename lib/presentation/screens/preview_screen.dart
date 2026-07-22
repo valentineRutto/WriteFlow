@@ -9,6 +9,7 @@ class PreviewScreen extends StatefulWidget {
     required this.onEditPage,
     required this.onHome,
     required this.onLibrary,
+    required this.onSettings,
   });
 
   final PreviewViewModel viewModel;
@@ -17,6 +18,7 @@ class PreviewScreen extends StatefulWidget {
   final VoidCallback onEditPage;
   final VoidCallback onHome;
   final VoidCallback onLibrary;
+  final VoidCallback onSettings;
 
   @override
   State<PreviewScreen> createState() => _PreviewScreenState();
@@ -191,6 +193,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
           current: AppScreen.preview,
           onHome: widget.onHome,
           onLibrary: widget.onLibrary,
+          onSettings: widget.onSettings,
         ),
       ],
     );

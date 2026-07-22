@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum AppScreen { home, preview, library }
+enum AppScreen { home, preview, library, settings }
 
 class AppNavigationViewModel extends ChangeNotifier {
   AppScreen _screen = AppScreen.home;

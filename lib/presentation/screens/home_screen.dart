@@ -9,6 +9,7 @@ class HomeScreen extends StatelessWidget {
     required this.onEditDocumentType,
     required this.onScan,
     required this.onLibrary,
+    required this.onSettings,
   });
 
   final ScanViewModel viewModel;
@@ -17,6 +18,7 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onEditDocumentType;
   final Future<void> Function() onScan;
   final VoidCallback onLibrary;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +116,12 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        AppNavBar(current: AppScreen.home, onHome: () {}, onLibrary: onLibrary),
+        AppNavBar(
+          current: AppScreen.home,
+          onHome: () {},
+          onLibrary: onLibrary,
+          onSettings: onSettings,
+        ),
       ],
     );
   }

@@ -6,11 +6,13 @@ class LibraryScreen extends StatefulWidget {
     required this.viewModel,
     required this.onHome,
     required this.onOpenDocument,
+    required this.onSettings,
   });
 
   final LibraryViewModel viewModel;
   final VoidCallback onHome;
   final ValueChanged<LibraryDocument> onOpenDocument;
+  final VoidCallback onSettings;
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -119,6 +121,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           current: AppScreen.library,
           onHome: widget.onHome,
           onLibrary: () {},
+          onSettings: widget.onSettings,
         ),
       ],
     );

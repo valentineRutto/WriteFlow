@@ -6,14 +6,17 @@ import '../app/app_dependencies.dart';
 import '../data/export/document_export_service.dart';
 import '../domain/models/library_document.dart';
 import '../domain/models/scanned_document.dart';
+import '../domain/models/gemma_model_option.dart';
 import 'view_models/app_navigation_view_model.dart';
 import 'view_models/library_view_model.dart';
 import 'view_models/preview_view_model.dart';
 import 'view_models/scan_view_model.dart';
+import 'view_models/settings_view_model.dart';
 
 part 'screens/home_screen.dart';
 part 'screens/library_screen.dart';
 part 'screens/preview_screen.dart';
+part 'screens/settings_screen.dart';
 
 class InkDocApp extends StatelessWidget {
   const InkDocApp({super.key, this.dependencies});
@@ -50,6 +53,7 @@ class _InkDocShellState extends State<InkDocShell> {
   late final ScanViewModel _scanViewModel;
   late final PreviewViewModel _previewViewModel;
   late final LibraryViewModel _libraryViewModel;
+  late final SettingsViewModel _settingsViewModel;
   late final Listenable _viewModels;
   final List<DocType> _documentTypes = List.of(defaultDocTypes);
 
@@ -67,11 +71,15 @@ class _InkDocShellState extends State<InkDocShell> {
     _libraryViewModel = LibraryViewModel(
       repository: widget.dependencies.libraryRepository,
     );
+    _settingsViewModel = SettingsViewModel(
+      repository: widget.dependencies.gemmaModelRepository,
+    );
     _viewModels = Listenable.merge([
       _navigationViewModel,
       _scanViewModel,
       _previewViewModel,
       _libraryViewModel,
+      _settingsViewModel,
     ]);
     _libraryViewModel.load();
   }
@@ -82,6 +90,7 @@ class _InkDocShellState extends State<InkDocShell> {
     _scanViewModel.dispose();
     _previewViewModel.dispose();
     _libraryViewModel.dispose();
+    _settingsViewModel.dispose();
     super.dispose();
   }
 
@@ -149,6 +158,7 @@ class _InkDocShellState extends State<InkDocShell> {
                             onScan: _scan,
                             onLibrary: () =>
                                 _navigationViewModel.show(AppScreen.library),
+                            onSettings: _showSettings,
                           ),
                           AppScreen.preview => PreviewScreen(
                             viewModel: _previewViewModel,
@@ -161,12 +171,21 @@ class _InkDocShellState extends State<InkDocShell> {
                                 _navigationViewModel.show(AppScreen.home),
                             onLibrary: () =>
                                 _navigationViewModel.show(AppScreen.library),
+                            onSettings: _showSettings,
                           ),
                           AppScreen.library => LibraryScreen(
                             viewModel: _libraryViewModel,
                             onHome: () =>
                                 _navigationViewModel.show(AppScreen.home),
                             onOpenDocument: _openLibraryDocument,
+                            onSettings: _showSettings,
+                          ),
+                          AppScreen.settings => SettingsScreen(
+                            viewModel: _settingsViewModel,
+                            onHome: () =>
+                                _navigationViewModel.show(AppScreen.home),
+                            onLibrary: () =>
+                                _navigationViewModel.show(AppScreen.library),
                           ),
                         },
                       ),
@@ -179,6 +198,11 @@ class _InkDocShellState extends State<InkDocShell> {
         );
       },
     );
+  }
+
+  void _showSettings() {
+    _navigationViewModel.show(AppScreen.settings);
+    _settingsViewModel.load();
   }
 
   Future<void> _editCurrentPage() async {
@@ -1572,11 +1596,13 @@ class AppNavBar extends StatelessWidget {
     required this.current,
     required this.onHome,
     required this.onLibrary,
+    required this.onSettings,
   });
 
   final AppScreen current;
   final VoidCallback onHome;
   final VoidCallback onLibrary;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -1603,8 +1629,8 @@ class AppNavBar extends StatelessWidget {
           NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
-            active: false,
-            onTap: () {},
+            active: current == AppScreen.settings,
+            onTap: onSettings,
           ),
         ],
       ),

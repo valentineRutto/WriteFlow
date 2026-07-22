@@ -4,6 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:inkdoc/main.dart';
 
 void main() {
+  testWidgets('opens Gemma model settings', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(430, 920));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const InkDocApp());
+    await tester.tap(find.text('Settings'));
+    await tester.pump();
+
+    expect(find.text('On-device AI model'), findsOneWidget);
+    expect(find.textContaining('Download a Gemma model once'), findsOneWidget);
+  });
+
   testWidgets('navigates between InkDoc screens', (tester) async {
     await tester.binding.setSurfaceSize(const Size(430, 920));
     addTearDown(() => tester.binding.setSurfaceSize(null));
