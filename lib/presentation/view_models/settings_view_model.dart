@@ -13,19 +13,26 @@ class SettingsViewModel extends ChangeNotifier {
   String? _busyModelId;
   int _progress = 0;
   String? _errorMessage;
+  DeviceCapabilities? _deviceCapabilities;
 
   List<GemmaModelState> get models => _models;
   bool get isLoading => _isLoading;
   String? get busyModelId => _busyModelId;
   int get progress => _progress;
   String? get errorMessage => _errorMessage;
+  DeviceCapabilities? get deviceCapabilities => _deviceCapabilities;
 
   Future<void> load() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _models = await _repository.loadModels();
+      final results = await Future.wait<Object>([
+        _repository.loadModels(),
+        _repository.loadDeviceCapabilities(),
+      ]);
+      _models = results[0] as List<GemmaModelState>;
+      _deviceCapabilities = results[1] as DeviceCapabilities;
     } on Object catch (error) {
       _errorMessage = error.toString();
     } finally {

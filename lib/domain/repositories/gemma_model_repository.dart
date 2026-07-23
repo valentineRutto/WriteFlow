@@ -1,6 +1,8 @@
 import '../models/gemma_model_option.dart';
 
 abstract interface class GemmaModelRepository {
+  Future<DeviceCapabilities> loadDeviceCapabilities();
+
   Future<List<GemmaModelState>> loadModels();
 
   Future<void> downloadAndActivate(

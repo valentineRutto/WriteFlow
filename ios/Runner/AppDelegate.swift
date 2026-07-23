@@ -30,6 +30,8 @@ import VisionKit
             pageLimit: batchMode ? min(max(requestedLimit, 2), 10) : 1,
             result: result
           )
+        case "getDeviceCapabilities":
+          result(self?.deviceCapabilities())
         case "improveText":
           let arguments = call.arguments as? [String: Any]
           let text = arguments?["text"] as? String ?? ""
@@ -41,6 +43,30 @@ import VisionKit
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func deviceCapabilities() -> [String: Any] {
+    let bytesPerGb = 1024.0 * 1024.0 * 1024.0
+    let values = try? URL(fileURLWithPath: NSHomeDirectory())
+      .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+    #if targetEnvironment(simulator)
+      let isSimulator = true
+    #else
+      let isSimulator = false
+    #endif
+    #if arch(arm64)
+      let architecture = "arm64"
+    #else
+      let architecture = "x86_64"
+    #endif
+    return [
+      "platform": "iOS",
+      "osVersion": UIDevice.current.systemVersion,
+      "totalRamGb": Double(ProcessInfo.processInfo.physicalMemory) / bytesPerGb,
+      "freeStorageGb": Double(values?.volumeAvailableCapacityForImportantUsage ?? 0) / bytesPerGb,
+      "architecture": architecture,
+      "isSimulator": isSimulator,
+    ]
   }
 
   private func scanDocument(pageLimit: Int, result: @escaping FlutterResult) {

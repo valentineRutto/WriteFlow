@@ -33,6 +33,10 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(color: AppColors.textMuted, height: 1.4),
               ),
               const SizedBox(height: 18),
+              if (viewModel.deviceCapabilities case final device?)
+                _DeviceCompatibilityCard(device: device),
+              if (viewModel.deviceCapabilities != null)
+                const SizedBox(height: 18),
               if (viewModel.isLoading)
                 const Center(
                   child: Padding(
@@ -101,6 +105,8 @@ class _GemmaModelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final device = viewModel.deviceCapabilities;
+    final isCompatible = device?.supports(model.option);
     final isBusy = viewModel.busyModelId == model.option.id;
     final anotherIsBusy =
         viewModel.busyModelId != null &&
@@ -136,13 +142,29 @@ class _GemmaModelCard extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 )
               else
-                Text(
-                  model.option.sizeLabel,
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      model.option.sizeLabel,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (isCompatible != null)
+                      Text(
+                        isCompatible ? 'Recommended' : 'May not run',
+                        style: TextStyle(
+                          color: isCompatible
+                              ? AppColors.deepGreen
+                              : Colors.deepOrange,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                  ],
                 ),
             ],
           ),
@@ -150,6 +172,16 @@ class _GemmaModelCard extends StatelessWidget {
           Text(
             model.option.description,
             style: const TextStyle(color: AppColors.textMuted, height: 1.35),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Requires ${model.option.minimumRamGb.toStringAsFixed(0)} GB RAM and '
+            '${model.option.requiredStorageGb.toStringAsFixed(0)} GB free storage.',
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           if (isBusy) ...[
             const SizedBox(height: 14),
@@ -180,6 +212,75 @@ class _GemmaModelCard extends StatelessWidget {
                     ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DeviceCompatibilityCard extends StatelessWidget {
+  const _DeviceCompatibilityCard({required this.device});
+
+  final DeviceCapabilities device;
+
+  @override
+  Widget build(BuildContext context) {
+    final baseCompatible = device.totalRamGb >= 4 && device.freeStorageGb >= 1;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: baseCompatible ? AppColors.mint : const Color(0xFFFFF3E8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: baseCompatible ? AppColors.accentGreen : Colors.deepOrange,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                baseCompatible
+                    ? Icons.verified_outlined
+                    : Icons.warning_amber_rounded,
+                color: baseCompatible ? AppColors.deepGreen : Colors.deepOrange,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  baseCompatible
+                      ? 'This device supports Gemma'
+                      : 'Limited model compatibility',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${device.platform} ${device.osVersion}'
+            '${device.isSimulator ? ' • Simulator' : ''}\n'
+            '${device.totalRamGb.toStringAsFixed(1)} GB RAM • '
+            '${device.freeStorageGb.toStringAsFixed(1)} GB free • '
+            '${device.architecture}',
+            style: const TextStyle(color: AppColors.textMuted, height: 1.4),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Requirements: iOS 16+ or Android 8+, a 64-bit ARM device, at least '
+            '4 GB RAM, and 1–2 GB free storage. Performance varies by chipset '
+            'and thermal conditions. A compatibility result is guidance, not '
+            'a guarantee.',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );

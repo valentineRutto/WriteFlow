@@ -24,10 +24,22 @@ const _model = GemmaModelOption(
   description: 'Test model',
   sizeLabel: 'Compact',
   url: 'https://example.com/test.task',
+  minimumRamGb: 4,
+  requiredStorageGb: 1,
 );
 
 class _FakeGemmaModelRepository implements GemmaModelRepository {
   bool installed = false;
+
+  @override
+  Future<DeviceCapabilities> loadDeviceCapabilities() async =>
+      const DeviceCapabilities(
+        platform: 'Android',
+        osVersion: 'Android 16',
+        totalRamGb: 8,
+        freeStorageGb: 20,
+        architecture: 'arm64-v8a',
+      );
 
   @override
   Future<List<GemmaModelState>> loadModels() async => [

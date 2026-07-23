@@ -3,6 +3,9 @@ package com.valentinerutto.inkdoc
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.app.ActivityManager
+import android.os.Build
+import android.os.StatFs
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
@@ -32,6 +35,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "scanDocument" -> scanDocument(call, result)
+                "getDeviceCapabilities" -> result.success(deviceCapabilities())
                 "improveText" -> {
                     val text = call.argument<String>("text").orEmpty()
                     result.success(cleanRecognizedText(text))
@@ -39,6 +43,25 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun deviceCapabilities(): Map<String, Any> {
+        val memoryInfo = ActivityManager.MemoryInfo()
+        (getSystemService(ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(memoryInfo)
+        val stat = StatFs(filesDir.absolutePath)
+        val bytesPerGb = 1024.0 * 1024.0 * 1024.0
+        return mapOf(
+            "platform" to "Android",
+            "osVersion" to "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+            "totalRamGb" to memoryInfo.totalMem / bytesPerGb,
+            "freeStorageGb" to stat.availableBytes / bytesPerGb,
+            "architecture" to Build.SUPPORTED_ABIS.firstOrNull().orEmpty(),
+            "isSimulator" to (
+                Build.FINGERPRINT.contains("generic") ||
+                    Build.MODEL.contains("Emulator") ||
+                    Build.MODEL.contains("sdk_gphone")
+                ),
+        )
     }
 
     private fun scanDocument(call: MethodCall, result: MethodChannel.Result) {
