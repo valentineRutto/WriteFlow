@@ -24,6 +24,15 @@ Current text cleanup uses a local deterministic fallback when a native LLM is
 not available. This keeps the app runnable on emulators and simulators while
 the production model package/download flow is added.
 
+The Preview Clean action (including documents opened from Library) tries the
+downloaded Gemma model first and falls back to the Gemini cloud API if Gemma is
+unavailable or fails. Enable the cloud fallback at build time without checking
+the key into source control:
+
+```sh
+flutter run --dart-define=GEMINI_API_KEY=your_key
+```
+
 ## Features
 
 “Exam season pack” for students.
@@ -67,5 +76,4 @@ This improves trust, which is critical for OCR products.
 
 - Android
 - iOS
-
 

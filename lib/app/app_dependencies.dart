@@ -4,6 +4,8 @@ import '../data/repositories/native_scan_repository.dart';
 import '../data/repositories/local_library_repository.dart';
 import '../data/repositories/gemma_model_repository.dart';
 import '../data/platform/gemma_text_editing_repository.dart';
+import '../data/platform/gemini_cloud_text_editing_repository.dart';
+import '../data/platform/fallback_text_editing_repository.dart';
 import '../domain/repositories/library_repository.dart';
 import '../domain/repositories/gemma_model_repository.dart';
 import '../domain/repositories/scan_repository.dart';
@@ -18,10 +20,14 @@ class AppDependencies {
   });
 
   factory AppDependencies.production() {
-    final textEditingRepository = GemmaTextEditingRepository();
+    final gemmaTextEditingRepository = GemmaTextEditingRepository();
+    final textEditingRepository = FallbackTextEditingRepository(
+      primary: gemmaTextEditingRepository,
+      fallback: const GeminiCloudTextEditingRepository(),
+    );
     final libraryRepository = LocalLibraryRepository();
     final gemmaModelRepository = FlutterGemmaModelRepository(
-      onModelChanged: textEditingRepository.resetModel,
+      onModelChanged: gemmaTextEditingRepository.resetModel,
     );
 
     return AppDependencies(
@@ -35,10 +41,14 @@ class AppDependencies {
   }
 
   factory AppDependencies.demo() {
+    final gemmaTextEditingRepository = GemmaTextEditingRepository();
     return AppDependencies(
       scanRepository: const DemoScanRepository(),
       libraryRepository: const DemoLibraryRepository(),
-      textEditingRepository: GemmaTextEditingRepository(),
+      textEditingRepository: FallbackTextEditingRepository(
+        primary: gemmaTextEditingRepository,
+        fallback: const GeminiCloudTextEditingRepository(),
+      ),
       gemmaModelRepository: FlutterGemmaModelRepository(),
     );
   }

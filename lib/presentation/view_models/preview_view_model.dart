@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../domain/models/scanned_document.dart';
 import '../../domain/repositories/text_editing_repository.dart';
+import '../../data/platform/fallback_text_editing_repository.dart';
 
 class PreviewViewModel extends ChangeNotifier {
   PreviewViewModel({required TextEditingRepository textEditingRepository})
@@ -74,7 +75,9 @@ class PreviewViewModel extends ChangeNotifier {
       );
       updateCurrentPageText(
         improvedText,
-        aiEngine: 'Gemma on-device text cleanup',
+        aiEngine: _textEditingRepository is TextEditingEngineReporter
+            ? (_textEditingRepository as TextEditingEngineReporter).lastEngine
+            : 'AI text cleanup',
       );
     } on Object catch (error) {
       _errorMessage = error.toString();
