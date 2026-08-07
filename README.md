@@ -90,6 +90,6 @@ This improves trust, which is critical for OCR products.
 
 - Ondemand [assets delivery ]  model download after they have finished downloading the app <<-->>  
 - Bundle with the app 
--  
+-  add baidu unlimited ocr 
 
 
