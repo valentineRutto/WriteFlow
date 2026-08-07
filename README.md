@@ -7,6 +7,14 @@ InkDoc turns messy handwritten knowledge into clean, searchable, shareable docum
 
 InkToDoc AI converts handwritten notebooks, journals, and paper notes into editable digital documents using edge AI.
 
+### App Screenshots
+
+<div align="center">
+<img width="280"  alt="Screenshot_20260805_003307" src="https://github.com/user-attachments/assets/d982b9fd-b3e9-4628-a51e-280a8981689b" />
+<img width="280"  alt="Screenshot_20260805_003322" src="https://github.com/user-attachments/assets/dbe1665a-c985-4675-9c29-a2d3d4e53227" />
+</div>
+
+
 ## On-device scanning and AI pipeline
 
 InkDoc keeps scanning and text processing on the device:
