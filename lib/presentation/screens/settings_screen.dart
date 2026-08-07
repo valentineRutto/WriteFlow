@@ -21,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               Text(
-                'On-device AI model',
+                'Select On-device AI model',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.textPrimary,
                   fontWeight: FontWeight.w800,
@@ -29,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Download a Gemma model once, then use it offline to clean and improve scanned handwriting.',
+                'Download an aI model once, then use it offline to clean and improve scanned handwriting.',
                 style: TextStyle(color: AppColors.textMuted, height: 1.4),
               ),
               const SizedBox(height: 18),
